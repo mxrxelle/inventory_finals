@@ -13,8 +13,6 @@ class database{
     function signupUser($firstname, $lastname, $username, $email, $password, $role, $created_at){
         $con = $this->opencon();
 
-        $role = $_POST['role'];
-
         if($created_at === null){
             $created_at = date('Y-m-d H:i:s'); // Set current date and time if not provided
         }
@@ -22,11 +20,10 @@ class database{
         try{
             $con->beginTransaction();
 
-            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
             $stmt = $con->prepare("INSERT INTO users (first_name, last_name, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
-            $stmt->execute([$firstname, $lastname, $username, $email, $hashedPassword, $role, $created_at]);
+            $stmt->execute([$firstname, $lastname, $username, $email, $password, $role, $created_at]);
 
             //Get the newly inserted user_id
             $userID = $con->lastInsertID();
@@ -38,6 +35,7 @@ class database{
 
             //reverts any chnages made during the transaction. This keeps the database clean and consistent in case of an error
             $con->rollBack();
+            error_log("Signup Error: " . $e->getMessage());
             return false;
         }
     }
@@ -68,7 +66,7 @@ class database{
 
     function loginUser($username, $password){
         $con = $this->opencon();
-        $stmt = $con->prepare("SELECT * FROM user WHERE username = ?"); //? stands for placeholder
+        $stmt = $con->prepare("SELECT * FROM users WHERE username = ?"); //? stands for placeholder
         $stmt->execute([$username]);
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -77,7 +75,7 @@ class database{
 
             return $user;
         }
-
+        return false;
 
     }
     

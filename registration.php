@@ -12,6 +12,8 @@ if (isset($_POST['register'])){
   $lastname = $_POST['last_name'];
   $role = isset($_POST['role']) ? $_POST['role'] : '';
 
+  $password = password_hash($password_raw, PASSWORD_DEFAULT); 
+
   $valid_roles = ['admin', 'inventory_staff'];
   if (!in_array($role, $valid_roles)) {
     $sweetAlertConfig = "
@@ -36,9 +38,8 @@ if (isset($_POST['register'])){
           });
         </script>";
     } else {
-      $password = password_hash($password_raw, PASSWORD_BCRYPT);
-  }
-
+      $created_at = date('Y-m-d H:i:s');
+ 
   $userID = $con->signupUser($firstname, $lastname, $username, $email, $password, $role, $created_at);
 
   if ($userID){
@@ -47,7 +48,7 @@ if (isset($_POST['register'])){
     Swal.fire({
       icon: 'success',
       title: 'Registration Successful',
-      text: 'You have successfully registered as a an admin.',
+      text: 'You have successfully registered as a an  $role.',
       confirmButtonText: 'OK'
     }).then(() => {
       window.location.href = 'login.php'
@@ -65,6 +66,7 @@ if (isset($_POST['register'])){
     });
     </script>";
   }
+}
 }
 }
 

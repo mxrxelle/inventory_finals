@@ -4,33 +4,50 @@ require_once('classes/database.php');
 $con = new database();
 
 if (isset($_SESSION['user_id'])) {
-  header("Location: login.php");
-  exit();
+  if($_SESSION['role'] == 'admin'){
+    header("Location: admin_dashboard.php");
+    exit();
+  } elseif($_SESSION['role'] == 'inventory_staff'){
+    header("Location: inventory_dashboard.php");
+    exit();
+  }
 }
+$sweetAlertConfig = '';
  
 if (isset($_POST['login'])) {
   $username = $_POST['username'];
   $password = $_POST['password'];
+
   $user = $con->loginUser($username, $password);
  
   if ($user) {
-    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_id'] = $user['user_id'];
     $_SESSION['first_name'] = $user['first_name'];
+    $_SESSION['role'] = $user['role'];  
     
  
     $sweetAlertConfig = "
+      <script src='./package/dist/sweetalert2.js'></script>
       <script>
         Swal.fire({
           icon: 'success',
           title: 'Login Successful',
           text: 'Welcome, " . addslashes(htmlspecialchars($user['first_name'])) . "',
           confirmButtonText: 'Continue'
-        }).then(() => {
-          window.location.href = 'login.php';
+        }).then(() => {";
+          if($user['role'] == 'admin'){
+          $sweetAlertConfig .= "window.location.href = 'admin_dashboard.php';";
+          } elseif($user['role'] == 'inventory_staff'){
+          $sweetAlertConfig .= "window.location.href = 'inventory_dashboard.php';";
+         }else{
+          $sweetAlertConfig .="window.location.href = 'login.php';";
+        }
+        $sweetAlertConfig .= "
         });
       </script>";
   } else {
     $sweetAlertConfig = "
+      <script src='./package/dist/sweetalert2.js'></script>
       <script>
         Swal.fire({
           icon: 'error',
