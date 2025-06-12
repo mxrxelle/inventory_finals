@@ -111,5 +111,39 @@ class database{
         }
         
     }
+    
+    function getUserById($user_id){
+    $con = $this->opencon();
+    $stmt = $con->prepare("SELECT * FROM users WHERE user_id = ?");
+    $stmt->execute([$user_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function updateUser($firstname, $lastname, $email, $role, $user_id){
+    try {
+        $con = $this->opencon();
+        $con->beginTransaction();
+
+        $stmt = $con->prepare("UPDATE users SET first_name=?, last_name=?, email=?, role=? WHERE user_id=?");
+        $stmt->execute([$firstname, $lastname, $email, $role, $user_id]);
+
+        $con->commit();
+        return true;
+    } catch(PDOException $e){
+        $con->rollBack();
+        return false;
+    }
+}
+
+function deleteUser($user_id){
+    try {
+        $con = $this->opencon();
+        $stmt = $con->prepare("DELETE FROM users WHERE user_id=?");
+        return $stmt->execute([$user_id]);
+    } catch(PDOException $e){
+        return false;
+    }
+}
+
 
 }

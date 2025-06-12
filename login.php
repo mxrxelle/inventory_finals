@@ -12,7 +12,7 @@ if (isset($_SESSION['user_id'])) {
     exit();
   }
 }
-$sweetAlertConfig = '';
+$sweetAlertConfig = ''; 
  
 if (isset($_POST['login'])) {
   $username = $_POST['username'];
@@ -23,6 +23,7 @@ if (isset($_POST['login'])) {
   if ($user) {
     $_SESSION['user_id'] = $user['user_id'];
     $_SESSION['first_name'] = $user['first_name'];
+    $_SESSION['last_name'] = $user['last_name'];
     $_SESSION['role'] = $user['role'];  
     
  
