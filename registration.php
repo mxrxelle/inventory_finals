@@ -186,7 +186,7 @@ if (isset($_POST['register'])){
       text: 'You have successfully registered as a an  $role.',
       confirmButtonText: 'OK'
     }).then(() => {
-      window.location.href = 'login.php'
+      window.location.href = 'home.php'
     });
     </script>";
    

@@ -140,8 +140,8 @@ $full_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
         <ul>
             <li><a href="admin_dashboard.php">Dashboard</a></li>
             <li><a href="users.php">Users</a></li>
-            <li><a href="category.php">Category</a></li>
             <li><a href="products.php">Products</a></li>
+            <li><a href="orders.php">Orders</a></li>           
             <li><a href="sales.php">Sales</a></li>
             <li><a href="suppliers.php">Suppliers</a></li>
             <li><a href="logout.php">Logout</a></li>
