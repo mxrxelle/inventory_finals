@@ -26,7 +26,7 @@ if (isset($_POST['add_transaction'])) {
 }
 
 $products = $db->query("SELECT products_id, product_name, product_stock FROM products")->fetchAll();
-$stmt = $db->query("SELECT it.transaction_id, it.transaction_type, p.product_name, it.quantity, it.remarks, it.transaction_date FROM inventory_transactions it JOIN products p ON it.product_id = p.products_id ORDER BY it.transaction_date DESC");
+$stmt = $db->query("SELECT it.transaction_id, it.transaction_type, p.product_name, it.quantity, it.remarks, it.transaction_date FROM inventory_transactions it JOIN products p ON it.products_id = p.products_id ORDER BY it.transaction_date DESC");
 $transactions = $stmt->fetchAll();
 ?>
 

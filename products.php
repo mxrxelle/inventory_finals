@@ -147,7 +147,6 @@ if ($selectedCategory > 0) {
             <a href="#" style="background-color:#34495e;">Sales <span style="float:right;">&#9660;</span></a>
             <ul class="submenu">
                 <li><a href="add_transaction.php">Inventory Transactions</a></li>
-                <li><a href="sales.php">Sales Orders</a></li>
                 <li><a href="sales_report.php">Sales Report</a></li>
             </ul>
             </li>

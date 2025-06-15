@@ -185,7 +185,7 @@ public function getAvailableProducts($con) {
     $con = $this->opencon();
 
     $stmt = $con->prepare("INSERT INTO inventory_transactions (transaction_type, product_id, quantity, remarks, transaction_date) VALUES (?, ?, ?, ?, NOW())");
-    $stmt->execute([$type, $product_id, $quantity, $remarks]);
+    $stmt->execute([$type, $products_id, $quantity, $remarks]);
 
     if ($type === 'Adjustment') {
         $updateStmt = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
