@@ -2,8 +2,14 @@
 session_start();
 require_once('classes/database.php');
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: login.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Allow both Admin and Inventory Staff
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
+    header("Location: login.php");
     exit();
 }
 
@@ -30,24 +36,105 @@ $stmt = $db->query("SELECT it.transaction_id, it.transaction_type, p.product_nam
 $transactions = $stmt->fetchAll();
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Add Inventory Transaction</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #ecf0f1; }
-        .container { margin: 40px auto; width: 800px; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 2px 10px #ccc; }
+        body { font-family: Arial, sans-serif; background-color: #ecf0f1; margin: 0; padding: 0; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 200px;
+            height: 100vh;
+            background-color: #2c3e50;
+            color: white;
+            position: fixed;
+            padding: 20px;
+            top: 0;
+            left: 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 22px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 15px;
+        }
+
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 4px;
+            transition: background 0.3s;
+            font-size: 15px;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #34495e;
+        }
+
+        
+
+        /* Main Content */
+        .container {
+            margin-left: 220px; /* space for sidebar */
+            padding: 40px;
+            width: calc(100% - 240px);
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px #ccc;
+            min-height: 100vh;
+        }
+
         h1, h2 { color: #2c3e50; }
         label { display: block; margin-top: 15px; }
-        input, select { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; }
-        input[type="submit"] { width: auto; background: #2980b9; color: #fff; border: none; margin-top: 20px; cursor: pointer; }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        input[type="submit"] {
+            width: auto;
+            background: #2980b9;
+            color: #fff;
+            border: none;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
         input[type="submit"]:hover { background: #3498db; }
         .success-message { color: green; margin-top: 10px; }
-        table { margin-top: 30px; border-collapse: collapse; width: 100%; }
-        th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+
+        table {
+            margin-top: 30px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
         th { background: #2980b9; color: #fff; }
+
         a { color: #2980b9; text-decoration: none; }
         a:hover { text-decoration: underline; }
     </style>
@@ -66,6 +153,34 @@ $transactions = $stmt->fetchAll();
     </script>
 </head>
 <body>
+
+<div class="sidebar">
+    <h2><?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
+    <ul>
+        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">Dashboard</a></li>
+        
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+            <li><a href="users.php">Users</a></li>
+        <?php endif; ?>
+        
+        <li><a href="products.php">Products</a></li>
+        <li><a href="orders.php">Orders</a></li>
+        
+        <li class="has-submenu">
+            <a href="#" style="background-color:#34495e;">Sales <span style="float:right;">&#9660;</span></a>
+            <ul class="submenu">
+                <li><a href="add_transaction.php">Inventory Transactions</a></li>
+                <?php if ($_SESSION['role'] === 'admin'): ?>
+                    <li><a href="sales_report.php">Sales Report</a></li>
+                <?php endif; ?>
+            </ul>
+        </li>
+        
+        <li><a href="suppliers.php">Suppliers</a></li>
+        <li><a href="logout.php">Logout</a></li>
+    </ul>
+</div>
+
 <div class="container">
     <h1>Add Inventory Transaction</h1>
     <?php if ($message): ?>
@@ -94,8 +209,10 @@ $transactions = $stmt->fetchAll();
 
         <label id="quantityLabel">Quantity</label>
         <input type="number" name="quantity" id="quantityInput" min="1" required>
+
         <label>Remarks</label>
         <input type="text" name="remarks">
+
         <input type="submit" name="add_transaction" value="Save">
     </form>
 
@@ -125,7 +242,8 @@ $transactions = $stmt->fetchAll();
         </tbody>
     </table>
     <br>
-    <a href="admin_dashboard.php">Back to Dashboard</a>
+    <a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">Back to Dashboard</a>
 </div>
+
 </body>
 </html>

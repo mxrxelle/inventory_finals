@@ -1,14 +1,31 @@
+
 <?php
 require_once('classes/database.php');
-$con = new database();
+session_start();
 
-$sweetAlertConfig = "";
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Allow both Admin and Inventory Staff
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
+    header("Location: login.php");
+    exit();
+}
+
+$db = new database();
+$con = $db->opencon();
 
 // Fetch categories for dropdown
-$categories = $con->getAllCategories();
+$catStmt = $con->query("SELECT * FROM Category");
+$categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Check if category_id is coming from URL (from products.php click)
-$selectedCategoryId = isset($_GET['category_id']) ? $_GET['category_id'] : '';
+// Get category_id from URL, if any (fixed category)
+$selectedCategoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+
+// SweetAlert config string
+$sweetAlertConfig = "";
 
 // When form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -17,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productPrice = trim($_POST['product_price']);
     $productStock = trim($_POST['product_stock']);
 
-    // Validation (simple)
     if (empty($productName) || empty($categoryId) || empty($productPrice) || empty($productStock)) {
         $sweetAlertConfig = "
             <script>
@@ -28,8 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               });
             </script>";
     } else {
-        // Insert to DB
-        $result = $con->addProduct($productName, $categoryId, $productPrice, $productStock);
+        $stmt = $con->prepare("INSERT INTO Products (product_name, category_id, product_price, product_stock) VALUES (?, ?, ?, ?)");
+        $result = $stmt->execute([$productName, $categoryId, $productPrice, $productStock]);
+
         if ($result) {
             $sweetAlertConfig = "
             <script>
@@ -58,46 +75,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Add Product</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-<div class="container mt-5">
+<div class="container mt-5" style="max-width: 600px;">
   <h2>Add Product</h2>
   <form method="POST" action="">
     <div class="mb-3">
       <label for="product_name" class="form-label">Product Name</label>
-      <input type="text" class="form-control" id="product_name" name="product_name" required>
+      <input type="text" class="form-control" id="product_name" name="product_name" required />
     </div>
 
     <div class="mb-3">
       <label for="category_id" class="form-label">Category</label>
-      <select class="form-select" id="category_id" name="category_id" required>
-        <option value="">Select Category</option>
-        <?php foreach ($categories as $cat): ?>
-            <option value="<?= $cat['category_id'] ?>" <?= ($cat['category_id'] == $selectedCategoryId) ? 'selected' : '' ?>>
-                <?= htmlspecialchars($cat['category_name']) ?>
-            </option>
-        <?php endforeach; ?>
-      </select>
+      <?php if ($selectedCategoryId > 0): 
+          // find category name
+          $fixedCategoryName = '';
+          foreach ($categories as $cat) {
+              if ($cat['category_id'] == $selectedCategoryId) {
+                  $fixedCategoryName = $cat['category_name'];
+                  break;
+              }
+          }
+      ?>
+          <input type="text" class="form-control" value="<?= htmlspecialchars($fixedCategoryName) ?>" disabled />
+          <input type="hidden" name="category_id" value="<?= htmlspecialchars($selectedCategoryId) ?>" />
+      <?php else: ?>
+          <select class="form-select" id="category_id" name="category_id" required>
+            <option value="">Select Category</option>
+            <?php foreach ($categories as $cat): ?>
+                <option value="<?= $cat['category_id'] ?>">
+                    <?= htmlspecialchars($cat['category_name']) ?>
+                </option>
+            <?php endforeach; ?>
+          </select>
+      <?php endif; ?>
     </div>
 
     <div class="mb-3">
       <label for="product_price" class="form-label">Price</label>
-      <input type="number" class="form-control" id="product_price" name="product_price" required>
+      <input type="number" step="0.01" class="form-control" id="product_price" name="product_price" required />
     </div>
 
     <div class="mb-3">
       <label for="product_stock" class="form-label">Stock</label>
-      <input type="number" class="form-control" id="product_stock" name="product_stock" required>
+      <input type="number" class="form-control" id="product_stock" name="product_stock" required />
     </div>
 
     <button type="submit" class="btn btn-primary">Add Product</button>
+    <a href="products.php" class="btn btn-secondary ms-2">Cancel</a>
   </form>
 </div>
 
-<?php echo $sweetAlertConfig; ?>
+<?= $sweetAlertConfig ?>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

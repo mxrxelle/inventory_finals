@@ -2,7 +2,13 @@
 require_once('classes/database.php');
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Allow both Admin and Inventory Staff
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     header("Location: login.php");
     exit();
 }
@@ -120,23 +126,32 @@ $suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!-- Sidebar Navigation -->
 <div class="sidebar">
-    <h2>Admin Panel</h2>
+    <h2><?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
     <ul>
-        <li><a href="admin_dashboard.php">Dashboard</a></li>
-        <li><a href="users.php">Users</a></li>
+        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">Dashboard</a></li>
+        
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+            <li><a href="users.php">Users</a></li>
+        <?php endif; ?>
+        
         <li><a href="products.php">Products</a></li>
         <li><a href="orders.php">Orders</a></li>
+        
         <li class="has-submenu">
             <a href="#" style="background-color:#34495e;">Sales <span style="float:right;">&#9660;</span></a>
             <ul class="submenu">
                 <li><a href="add_transaction.php">Inventory Transactions</a></li>
-                <li><a href="sales_report.php">Sales Report</a></li>
+                <?php if ($_SESSION['role'] === 'admin'): ?>
+                    <li><a href="sales_report.php">Sales Report</a></li>
+                <?php endif; ?>
             </ul>
-            </li>
+        </li>
+        
         <li><a href="suppliers.php">Suppliers</a></li>
         <li><a href="logout.php">Logout</a></li>
     </ul>
 </div>
+
 
 <!-- Main Content Area -->
 <div class="main-content">
