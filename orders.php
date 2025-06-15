@@ -133,7 +133,14 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <li><a href="users.php">Users</a></li>
         <li><a href="products.php">Products</a></li>
         <li><a href="orders.php">Orders</a></li>
-        <li><a href="sales.php">Sales</a></li>
+        <li class="has-submenu">
+            <a href="#" style="background-color:#34495e;">Sales <span style="float:right;">&#9660;</span></a>
+            <ul class="submenu">
+                <li><a href="add_transaction.php">Inventory Transactions</a></li>
+                <li><a href="sales.php">Sales Orders</a></li>
+                <li><a href="sales_report.php">Sales Report</a></li>
+            </ul>
+            </li>
         <li><a href="suppliers.php">Suppliers</a></li>
         <li><a href="logout.php">Logout</a></li>
     </ul>

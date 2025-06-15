@@ -172,6 +172,35 @@ public function getAvailableProducts($con) {
         $stmt = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
         return $stmt->execute([$new_stock, $products_id]);
     }
+
+    function addInventoryTransaction($type, $product_id, $quantity, $remarks) {
+    $transactionTypes = [
+        'Add' => 1,
+        'Remove' => -1,
+        'Sale' => -1,
+        'Return' => 1,
+        'Adjustment' => 0,
+    ];
+
+    $con = $this->opencon();
+
+    $stmt = $con->prepare("INSERT INTO inventory_transactions (transaction_type, product_id, quantity, remarks, transaction_date) VALUES (?, ?, ?, ?, NOW())");
+    $stmt->execute([$type, $product_id, $quantity, $remarks]);
+
+    if ($type === 'Adjustment') {
+        $updateStmt = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
+        $updateStmt->execute([$quantity, $product_id]);
+    } elseif (isset($transactionTypes[$type])) {
+        $stockChange = $transactionTypes[$type] * $quantity;
+        $updateStmt = $con->prepare("UPDATE products SET product_stock = product_stock + ? WHERE products_id = ?");
+        $updateStmt->execute([$stockChange, $product_id]);
+    }
 }
+
+
+
+}
+
+
 
 
