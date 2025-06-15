@@ -18,12 +18,14 @@ $totalProducts = $db->query("SELECT COUNT(*) FROM products")->fetchColumn();
 // Total Categories
 $totalCategories = $db->query("SELECT COUNT(DISTINCT category_id) FROM products")->fetchColumn();
 
-// Total Sales Today
-$dateToday = date("Y-m-d");
-$stmt = $db->prepare("SELECT SUM(total_amount) FROM orders WHERE DATE(order_date) = :today");
-$stmt->execute(['today' => $dateToday]);
-$totalSalesToday = $stmt->fetchColumn();
-$totalSalesToday = $totalSalesToday ? $totalSalesToday : 0;
+
+// Total Sales This Month
+$currentMonth = date("Y-m");
+$stmt = $db->prepare("SELECT SUM(total_amount) FROM orders WHERE DATE_FORMAT(order_date, '%Y-%m') = :month");
+$stmt->execute(['month' => $currentMonth]);
+$totalSalesMonth = $stmt->fetchColumn();
+$totalSalesMonth = $totalSalesMonth ? $totalSalesMonth : 0;
+
 
 // Total Users
 $totalUsers = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
@@ -33,13 +35,20 @@ $recentOrders = $db->query("SELECT * FROM orders ORDER BY order_date DESC LIMIT 
 
 // Low Stock Products
 $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products WHERE product_stock <= 10 ORDER BY product_stock ASC")->fetchAll(PDO::FETCH_ASSOC);
-?>
 
+// Sales Data for Chart
+$salesDataQuery = $db->query("SELECT DATE(order_date) as date, SUM(total_amount) as total FROM orders GROUP BY DATE(order_date) ORDER BY date DESC LIMIT 30");
+$salesData = $salesDataQuery->fetchAll(PDO::FETCH_ASSOC);
+
+$salesLabels = array_reverse(array_column($salesData, 'date'));
+$salesTotals = array_reverse(array_column($salesData, 'total'));
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Basic Reset */
         * {
@@ -95,7 +104,6 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
             background-color: #34495e;
         }
 
-        /* Submenu */
         .has-submenu > a::after {
             content: '▼';
             float: right;
@@ -124,9 +132,8 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
             background-color: #3d566e;
         }
 
-        /* Main Content */
         .main-content {
-            margin-left: 220px; /* To prevent overlap with sidebar */
+            margin-left: 220px;
             padding: 20px;
         }
 
@@ -135,7 +142,6 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
             color: #2c3e50;
         }
 
-        /* Dashboard Cards */
         .cards {
             display: flex;
             gap: 20px;
@@ -162,7 +168,6 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
             color: #2980b9;
         }
 
-        /* Table Section */
         .table-section {
             background: white;
             margin-top: 30px;
@@ -191,7 +196,6 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
 </head>
 <body>
 
-<!-- Sidebar Navigation -->
 <div class="sidebar">
     <h2>Admin Panel</h2>
     <ul>
@@ -211,31 +215,29 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
     </ul>
 </div>
 
-<!-- Main Content -->
 <div class="main-content">
-    <h1>Welcome, Admin!</h1>
+    <h1>Welcome, <?= htmlspecialchars($full_name) ?>!</h1>
 
-    <!-- Dashboard Summary Cards -->
     <div class="cards">
         <div class="card">
             <h3>Total Products</h3>
-            <p>100</p> <!-- Example Value -->
+            <p><?= $totalProducts ?></p>
         </div>
         <div class="card">
             <h3>Total Categories</h3>
-            <p>10</p> <!-- Example Value -->
+            <p><?= $totalCategories ?></p>
         </div>
         <div class="card">
-            <h3>Total Sales Today</h3>
-            <p>₱5000.00</p> <!-- Example Value -->
+            <h3>Total Sales This Month</h3>
+            <p>₱<?= number_format($totalSalesMonth, 2) ?></p>
         </div>
+
         <div class="card">
             <h3>Total Users</h3>
-            <p>20</p> <!-- Example Value -->
+            <p><?= $totalUsers ?></p>
         </div>
     </div>
 
-    <!-- Recent Orders Table -->
     <div class="table-section">
         <h3>Recent Orders</h3>
         <table>
@@ -245,16 +247,17 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
                 <th>Total Amount</th>
                 <th>Status</th>
             </tr>
+            <?php foreach ($recentOrders as $order): ?>
             <tr>
-                <td>1</td>
-                <td>2025-06-15</td>
-                <td>₱1000.00</td>
-                <td>Completed</td>
+                <td><?= $order['order_id'] ?></td>
+                <td><?= $order['order_date'] ?></td>
+                <td>﷼<?= number_format($order['total_amount'], 2) ?></td>
+                <td><?= htmlspecialchars($order['order_status']) ?></td>
             </tr>
+            <?php endforeach; ?>
         </table>
     </div>
 
-    <!-- Low Stock Table -->
     <div class="table-section">
         <h3>Low Stock Products (≤10)</h3>
         <table>
@@ -262,13 +265,45 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
                 <th>Product Name</th>
                 <th>Stock Left</th>
             </tr>
+            <?php foreach ($lowStockProducts as $prod): ?>
             <tr>
-                <td>Lubricant X</td>
-                <td>5</td>
+                <td><?= htmlspecialchars($prod['product_name']) ?></td>
+                <td><?= $prod['product_stock'] ?></td>
             </tr>
+            <?php endforeach; ?>
         </table>
     </div>
+
+    <!-- Sales Overview Chart -->
+    <div class="table-section">
+        <h3>Sales Overview</h3>
+        <canvas id="salesChart" width="400" height="150"></canvas>
+    </div>
 </div>
+
+<script>
+    const salesLabels = <?= json_encode($salesLabels) ?>;
+    const salesData = <?= json_encode($salesTotals) ?>;
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: salesLabels,
+            datasets: [{
+                label: 'Total Sales (﷼)',
+                data: salesData,
+                backgroundColor: '#2980b9'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
 
 </body>
 </html>
