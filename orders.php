@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Allow both Admin and Inventory Staff
 if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     header("Location: login.php");
     exit();
@@ -19,6 +18,7 @@ $con = $db->opencon();
 $sql = "SELECT o.*, u.username 
         FROM orders o 
         JOIN users u ON o.user_id = u.user_id 
+        WHERE o.order_status != 'Deleted'
         ORDER BY o.order_date DESC";
 $stmt = $con->prepare($sql);
 $stmt->execute();
@@ -33,7 +33,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
- 
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -41,11 +41,10 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       box-sizing: border-box;
       font-family: 'Poppins', sans-serif;
     }
- 
     body {
-      background-color: #f4f6f9;;
+      background-color: #f4f6f9;
     }
-      .sidebar {
+    .sidebar {
         width: 240px;
         height: 100vh;
         background-color: #0046af;
@@ -53,7 +52,6 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         position: fixed;
         padding: 20px;
     }
- 
     .sidebar h2 {
         margin-bottom: 30px;
         font-size: 1.8rem;
@@ -62,16 +60,13 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         padding-left: 10px;
         margin-top: 30px;
     }
- 
     .sidebar ul {
         list-style: none;
         padding: 0;
     }
- 
     .sidebar ul li {
         margin: 15px 0;
     }
- 
     .sidebar ul li a {
         color: white;
         text-decoration: none;
@@ -80,51 +75,40 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         border-radius: 4px;
         transition: background-color 0.3s;
     }
- 
     .sidebar ul li a:hover {
         background-color: #003d80;
     }
- 
     .has-submenu > a::after {
         content: "\25BC";
         float: right;
         font-size: 0.7rem;
         transition: transform 0.3s;
     }
- 
     .submenu {
         list-style: none;
         padding-left: 20px;
         display: none;
     }
- 
     .has-submenu.active .submenu {
         display: block;
     }
- 
     .has-submenu.active > a::after {
         transform: rotate(180deg);
     }
- 
- 
     .main-content {
-  margin-left: 260px;
-  padding: 40px 30px;
-}
- 
- 
+      margin-left: 260px;
+      padding: 40px 30px;
+    }
     h2 {
         color: #0046af;
         font-weight: 700;
         margin-bottom: 10px;
         font-size: 50px;
     }
- 
     p {
       margin-bottom: 20px;
       color: #555;
     }
- 
     .add-btn {
       background-color: #ffc107;
       padding: 10px 20px;
@@ -136,11 +120,9 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       transition: background-color 0.3s;
       font-weight: 500;
     }
- 
     .add-btn:hover {
       background-color: #e0a800;
     }
- 
     table {
       width: 100%;
       border-collapse: collapse;
@@ -149,23 +131,19 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       overflow: hidden;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
- 
     th, td {
       padding: 12px 15px;
       text-align: left;
       border-bottom: 1px solid #ddd;
     }
- 
     th {
       background-color: #0046af;
       color: white;
       font-weight: 600;
     }
- 
     tr:hover {
       background-color: #f9f9f9;
     }
- 
     .action-btn {
       display: inline-block;
       padding: 5px 12px;
@@ -176,20 +154,31 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       transition: 0.2s;
       font-weight: 500;
     }
- 
     .view-btn {
       background-color: #0046af;
       color: white;
     }
- 
     .view-btn:hover {
       background-color: #003b96;
     }
+    .confirm-btn {
+      background-color: #28a745;
+      color: white;
+    }
+    .confirm-btn:hover {
+      background-color: #218838;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
   </style>
 </head>
- 
 <body>
- 
+
 <!-- Sidebar -->
 <div class="sidebar">
     <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
@@ -197,14 +186,11 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">
             <i class="bi bi-house-door"></i> Dashboard</a>
         </li>
-        
         <?php if ($_SESSION['role'] === 'admin'): ?>
             <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
         <?php endif; ?>
-
         <li><a href="products.php"><i class="bi bi-box"></i> Products</a></li>
         <li><a href="orders.php"><i class="bi bi-cart"></i> Orders</a></li>
-        
         <li class="has-submenu">
             <a href="#"><i class="bi bi-receipt"></i> Sales</a>
             <ul class="submenu">
@@ -214,19 +200,18 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endif; ?>
             </ul>
         </li>
-
         <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
         <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
     </ul>
 </div>
- 
+
 <!-- Main Content -->
 <div class="main-content">
   <h2>Orders</h2>
   <p>View all sales orders placed by staff here.</p>
- 
+
   <a href="create_order.php" class="add-btn">Create New Order</a>
- 
+
   <table>
     <thead>
       <tr>
@@ -235,7 +220,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <th>Order Date</th>
         <th>Total Amount</th>
         <th>Status</th>
-        <th>View Items</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -249,6 +234,10 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <td><?= htmlspecialchars($order['order_status']) ?></td>
             <td>
               <a href="view_order_items.php?order_id=<?= $order['order_id'] ?>" class="action-btn view-btn">View</a>
+              <?php if ($order['order_status'] === 'Pending'): ?>
+                <button class="action-btn confirm-btn" data-id="<?= $order['order_id'] ?>">Confirm</button>
+              <?php endif; ?>
+              <button class="action-btn delete-btn" data-id="<?= $order['order_id'] ?>">Delete</button>
             </td>
           </tr>
         <?php endforeach; ?>
@@ -258,7 +247,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </tbody>
   </table>
 </div>
- 
+
 <!-- Submenu toggle script -->
 <script>
   document.querySelectorAll('.has-submenu > a').forEach(link => {
@@ -268,7 +257,47 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     });
   });
 </script>
- 
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.querySelectorAll('.confirm-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const orderId = this.getAttribute('data-id');
+      Swal.fire({
+        title: 'Confirm this order?',
+        text: "Once confirmed, the status will be updated to Completed.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, confirm it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = 'update_order_status.php?order_id=' + orderId;
+        }
+      });
+    });
+  });
+
+  document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const orderId = this.getAttribute('data-id');
+      Swal.fire({
+        title: 'Delete this order?',
+        text: "This will mark the order as Deleted.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = 'delete_order.php?order_id=' + orderId;
+        }
+      });
+    });
+  });
+</script>
+
 </body>
 </html>
- 
