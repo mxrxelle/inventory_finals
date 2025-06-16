@@ -66,7 +66,6 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
     <style>
-       <>
     * {
         margin: 0;
         padding: 0;
@@ -148,6 +147,7 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
         color: #0046af;
         font-weight: 700;
         margin-bottom: 10px;
+        font-size: 50px;
     }
  
     .main-content p {
@@ -159,15 +159,14 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
         border: none;
         border-radius: 10px;
         background-color: #fff;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Soft card shadow */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
  
     .card:hover {
         transform: translateY(-4px);
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-}
- 
+    }
  
     .card-title {
         color: #0046af;
@@ -238,19 +237,21 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 <div class="sidebar">
-    <h2><?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
+    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
     <ul>
-        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">Dashboard</a></li>
+        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">
+            <i class="bi bi-house-door"></i> Dashboard</a>
+        </li>
         
         <?php if ($_SESSION['role'] === 'admin'): ?>
-            <li><a href="users.php">Users</a></li>
+            <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
         <?php endif; ?>
-        
-        <li><a href="products.php">Products</a></li>
-        <li><a href="orders.php">Orders</a></li>
+
+        <li><a href="products.php"><i class="bi bi-box"></i> Products</a></li>
+        <li><a href="orders.php"><i class="bi bi-cart"></i> Orders</a></li>
         
         <li class="has-submenu">
-            <a href="#" style="background-color:#34495e;">Sales <span style="float:right;">&#9660;</span></a>
+            <a href="#"><i class="bi bi-receipt"></i> Sales</a>
             <ul class="submenu">
                 <li><a href="add_transaction.php">Inventory Transactions</a></li>
                 <?php if ($_SESSION['role'] === 'admin'): ?>
@@ -258,11 +259,13 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endif; ?>
             </ul>
         </li>
-        
-        <li><a href="suppliers.php">Suppliers</a></li>
-        <li><a href="logout.php">Logout</a></li>
+
+        <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
+        <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
     </ul>
 </div>
+
+ 
 <div class="main-content">
     <h2>Products</h2>
     <form method="GET" class="d-flex align-items-center mb-3 gap-3 flex-wrap position-relative">
@@ -323,6 +326,7 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
         <?php endif; ?>
     </div>
 </div>
+ 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -364,6 +368,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!searchInput.contains(e.target)) {
             suggestionBox.style.display = "none";
         }
+    });
+});
+ 
+// Submenu toggle
+document.querySelectorAll('.has-submenu > a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        this.parentElement.classList.toggle('active');
     });
 });
 </script>

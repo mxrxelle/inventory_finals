@@ -43,84 +43,81 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
  
     body {
-      background-color: #ecf0f1;
+      background-color: #f4f6f9;;
     }
- 
-    /* Sidebar */
-    .sidebar {
-      width: 240px;
-      height: 100vh;
-      background-color: #0046af;
-      color: white;
-      position: fixed;
-      padding: 20px;
-      overflow-y: auto;
+      .sidebar {
+        width: 240px;
+        height: 100vh;
+        background-color: #0046af;
+        color: white;
+        position: fixed;
+        padding: 20px;
     }
  
     .sidebar h2 {
-      margin-bottom: 30px;
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #ffc107;
-      padding-left: 10px;
-      margin-top: 30px;
+        margin-bottom: 30px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffc107;
+        padding-left: 10px;
+        margin-top: 30px;
     }
  
     .sidebar ul {
-      list-style: none;
-      padding: 0;
+        list-style: none;
+        padding: 0;
     }
  
     .sidebar ul li {
-      margin: 10px 0;
+        margin: 15px 0;
     }
  
     .sidebar ul li a {
-      color: white;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      border-radius: 4px;
-      transition: background-color 0.3s;
+        color: white;
+        text-decoration: none;
+        display: block;
+        padding: 10px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
     }
  
-    .sidebar ul li a:hover,
-    .sidebar ul li a.active {
-      background-color: #003d80;
+    .sidebar ul li a:hover {
+        background-color: #003d80;
     }
  
     .has-submenu > a::after {
-      content: "\25BC";
-      margin-left: auto;
-      font-size: 0.7rem;
-      transition: transform 0.3s;
+        content: "\25BC";
+        float: right;
+        font-size: 0.7rem;
+        transition: transform 0.3s;
     }
  
     .submenu {
-      list-style: none;
-      padding-left: 20px;
-      display: none;
+        list-style: none;
+        padding-left: 20px;
+        display: none;
     }
  
     .has-submenu.active .submenu {
-      display: block;
+        display: block;
     }
  
     .has-submenu.active > a::after {
-      transform: rotate(180deg);
+        transform: rotate(180deg);
     }
+ 
  
     .main-content {
-      margin-left: 240px;
-      padding: 40px 30px;
-    }
+  margin-left: 260px;
+  padding: 40px 30px;
+}
+ 
  
     h2 {
-      color: #0046af;
-      font-weight: 700;
-      margin-bottom: 10px;
+        color: #0046af;
+        font-weight: 700;
+        margin-bottom: 10px;
+        font-size: 50px;
     }
  
     p {
@@ -155,7 +152,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
  
     th, td {
       padding: 12px 15px;
-      text-align: center;
+      text-align: left;
       border-bottom: 1px solid #ddd;
     }
  
@@ -193,20 +190,23 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
  
 <body>
  
+<!-- Sidebar -->
 <div class="sidebar">
-    <h2><?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
+    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
     <ul>
-        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">Dashboard</a></li>
+        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">
+            <i class="bi bi-house-door"></i> Dashboard</a>
+        </li>
         
         <?php if ($_SESSION['role'] === 'admin'): ?>
-            <li><a href="users.php">Users</a></li>
+            <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
         <?php endif; ?>
-        
-        <li><a href="products.php">Products</a></li>
-        <li><a href="orders.php">Orders</a></li>
+
+        <li><a href="products.php"><i class="bi bi-box"></i> Products</a></li>
+        <li><a href="orders.php"><i class="bi bi-cart"></i> Orders</a></li>
         
         <li class="has-submenu">
-            <a href="#" style="background-color:#34495e;">Sales <span style="float:right;">&#9660;</span></a>
+            <a href="#"><i class="bi bi-receipt"></i> Sales</a>
             <ul class="submenu">
                 <li><a href="add_transaction.php">Inventory Transactions</a></li>
                 <?php if ($_SESSION['role'] === 'admin'): ?>
@@ -214,12 +214,13 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endif; ?>
             </ul>
         </li>
-        
-        <li><a href="suppliers.php">Suppliers</a></li>
-        <li><a href="logout.php">Logout</a></li>
+
+        <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
+        <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
     </ul>
 </div>
  
+<!-- Main Content -->
 <div class="main-content">
   <h2>Orders</h2>
   <p>View all sales orders placed by staff here.</p>
@@ -258,6 +259,7 @@ $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
   </table>
 </div>
  
+<!-- Submenu toggle script -->
 <script>
   document.querySelectorAll('.has-submenu > a').forEach(link => {
     link.addEventListener('click', function (e) {

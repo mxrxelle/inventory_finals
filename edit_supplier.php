@@ -75,28 +75,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Edit Supplier</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f9;
+        }
+ 
+        .form-container {
+            max-width: 600px;
+            margin: 60px auto;
+        }
+ 
+        .card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+ 
+        .card-header {
+            background-color: #0046af;
+            color: white;
+            font-weight: 600;
+            font-size: 20px;
+            text-align: center;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+ 
+        .btn-primary {
+            background-color: #0046af;
+            border: none;
+        }
+ 
+        .btn-primary:hover {
+            background-color: #003b91;
+        }
+ 
+        .btn-secondary {
+            background-color:red;
+            border: none;
+        }
+ 
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-5">
-    <h2>Edit Supplier</h2>
-    <form method="POST">
-        <div class="mb-3">
-            <label for="supplier_name" class="form-label">Supplier Name</label>
-            <input type="text" class="form-control" id="supplier_name" name="supplier_name" value="<?= htmlspecialchars($supplier['supplier_name']) ?>" required>
+ 
+<div class="container form-container">
+    <div class="card">
+        <div class="card-header">
+            Edit Supplier
         </div>
-        <div class="mb-3">
-            <label for="supplier_email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="supplier_email" name="supplier_email" value="<?= htmlspecialchars($supplier['supplier_email']) ?>" required>
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="supplier_name" class="form-label">Supplier Name</label>
+                    <input type="text" class="form-control" id="supplier_name" name="supplier_name"
+                           value="<?= htmlspecialchars($supplier['supplier_name']) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label for="supplier_email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="supplier_email" name="supplier_email"
+                           value="<?= htmlspecialchars($supplier['supplier_email']) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label for="supplier_phonenumber" class="form-label">Phone Number</label>
+                    <input type="text" class="form-control" id="supplier_phonenumber" name="supplier_phonenumber"
+                           value="<?= htmlspecialchars($supplier['supplier_phonenumber']) ?>" required>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="suppliers.php" class="btn btn-secondary">Back</a>
+                    <button type="submit" class="btn btn-primary">Update Supplier</button>
+                </div>
+            </form>
         </div>
-        <div class="mb-3">
-            <label for="supplier_phonenumber" class="form-label">Phone Number</label>
-            <input type="text" class="form-control" id="supplier_phonenumber" name="supplier_phonenumber" value="<?= htmlspecialchars($supplier['supplier_phonenumber']) ?>" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Update Supplier</button>
-        <a href="suppliers.php" class="btn btn-secondary">Back</a>
-    </form>
+    </div>
 </div>
-
+ 
 <?= $sweetAlertConfig ?>
+ 
 </body>
 </html>

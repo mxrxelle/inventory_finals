@@ -2,8 +2,14 @@
 session_start();
 require_once('classes/database.php');
  
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Location: login.php');
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Allow both Admin and Inventory Staff
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
+    header("Location: login.php");
     exit();
 }
  
@@ -158,19 +164,29 @@ $salesTotals = array_reverse(array_column($salesData, 'total'));
 </head>
 <body>
 <div class="sidebar">
-    <h2><i class="bi bi-speedometer2"></i> Admin Panel</h2>
+    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
     <ul>
-        <li><a href="admin_dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a></li>
-        <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
+        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">
+            <i class="bi bi-house-door"></i> Dashboard</a>
+        </li>
+        
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+            <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
+        <?php endif; ?>
+
         <li><a href="products.php"><i class="bi bi-box"></i> Products</a></li>
         <li><a href="orders.php"><i class="bi bi-cart"></i> Orders</a></li>
+        
         <li class="has-submenu">
-            <a href="#" onclick="event.preventDefault(); this.nextElementSibling.classList.toggle('show');"><i class="bi bi-receipt"></i> Sales</a>
+            <a href="#"><i class="bi bi-receipt"></i> Sales</a>
             <ul class="submenu">
                 <li><a href="add_transaction.php">Inventory Transactions</a></li>
-                <li><a href="sales_report.php">Sales Report</a></li>
+                <?php if ($_SESSION['role'] === 'admin'): ?>
+                    <li><a href="sales_report.php">Sales Report</a></li>
+                <?php endif; ?>
             </ul>
         </li>
+
         <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
         <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
     </ul>
