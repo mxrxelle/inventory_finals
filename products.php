@@ -60,74 +60,183 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Products</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="./bootstrap-5.3.3-dist/css/bootstrap.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f4f6f9;
-        }
-        .low-stock-label {
-            color: #dc3545;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        .sidebar {
-            width: 220px;
-            height: 100vh;
-            background-color: #2c3e50;
-            color: white;
-            position: fixed;
-            padding: 30px 20px;
-        }
-        .sidebar ul {
-            list-style: none;
-            padding: 0;
-        }
-        .sidebar ul li {
-            margin: 15px 0;
-        }
-        .sidebar ul li a {
-            color: white;
-            text-decoration: none;
-            display: block;
-            padding: 10px 15px;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .sidebar ul li a:hover {
-            background-color: #34495e;
-        }
-        .main-content {
-            margin-left: 240px;
-            padding: 40px 30px;
-        }
-        .search-box {
-            max-width: 300px;
-        }
-        #suggestions {
-            position: absolute;
-            background: white;
-            width: 300px;
-            z-index: 1000;
-            border: 1px solid #ccc;
-            border-top: none;
-            display: none;
-        }
-        #suggestions li {
-            padding: 8px 10px;
-            cursor: pointer;
-        }
-        #suggestions li:hover {
-            background-color: #f1f1f1;
-        }
+       <>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+ 
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f4f6f9;
+    }
+ 
+    .sidebar {
+        width: 240px;
+        height: 100vh;
+        background-color: #0046af;
+        color: white;
+        position: fixed;
+        padding: 20px;
+    }
+ 
+    .sidebar h2 {
+        margin-bottom: 30px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #ffc107;
+        padding-left: 10px;
+        margin-top: 30px;
+    }
+ 
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+    }
+ 
+    .sidebar ul li {
+        margin: 15px 0;
+    }
+ 
+    .sidebar ul li a {
+        color: white;
+        text-decoration: none;
+        display: block;
+        padding: 10px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+ 
+    .sidebar ul li a:hover {
+        background-color: #003d80;
+    }
+ 
+    .has-submenu > a::after {
+        content: "\25BC";
+        float: right;
+        font-size: 0.7rem;
+        transition: transform 0.3s;
+    }
+ 
+    .submenu {
+        list-style: none;
+        padding-left: 20px;
+        display: none;
+    }
+ 
+    .has-submenu.active .submenu {
+        display: block;
+    }
+ 
+    .has-submenu.active > a::after {
+        transform: rotate(180deg);
+    }
+ 
+    .main-content {
+        margin-left: 260px;
+        padding: 40px 20px;
+    }
+ 
+    .main-content h2 {
+        color: #0046af;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+ 
+    .main-content p {
+        color: #555;
+        margin-bottom: 30px;
+    }
+ 
+    .card {
+        border: none;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Soft card shadow */
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+ 
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+ 
+ 
+    .card-title {
+        color: #0046af;
+        font-weight: 600;
+    }
+ 
+    .btn-primary {
+        background-color: #0046af;
+        border: none;
+    }
+ 
+    .btn-primary:hover {
+        background-color: #003b91;
+    }
+ 
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+    }
+ 
+    .btn-danger:hover {
+        background-color: #b02a37;
+    }
+ 
+    .btn-outline-primary {
+        border-color: #0046af;
+        color: #0046af;
+    }
+ 
+    .btn-outline-primary:hover {
+        background-color: #0046af;
+        color: white;
+    }
+ 
+    .btn-outline-danger {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+ 
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+ 
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+    }
+ 
+    .low-stock-label {
+        color: red;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+ 
+    #suggestions {
+        max-height: 200px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ccc;
+        border-top: none;
+    }
+ 
+    #suggestions li {
+        cursor: pointer;
+    }
     </style>
 </head>
 <body>
-
-<!-- Sidebar Navigation -->
 <div class="sidebar">
     <h2><?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
     <ul>
@@ -154,19 +263,11 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
         <li><a href="logout.php">Logout</a></li>
     </ul>
 </div>
-
-<!-- Main Content -->
 <div class="main-content">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Products</h2><a href="add_product.php<?= $selectedCat > 0 ? '?category_id=' . $selectedCat : '' ?>" class="btn btn-success">
-  <i class="bi bi-plus-circle me-1"></i> Add Product
-</a>
-    </div>
-
-    <!-- Search and Category Filter -->
+    <h2>Products</h2>
     <form method="GET" class="d-flex align-items-center mb-3 gap-3 flex-wrap position-relative">
         <input type="text" name="search" id="productSearch" value="<?= htmlspecialchars($search) ?>" class="form-control search-box" placeholder="Search products..." autocomplete="off" />
-        <ul id="suggestions" class="list-group"></ul>
+        <ul id="suggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></ul>
         <select name="category_id" class="form-select" onchange="this.form.submit()" style="max-width: 200px;">
             <option value="0">All Categories</option>
             <?php foreach ($categories as $cat): ?>
@@ -177,8 +278,7 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
         </select>
         <button type="submit" class="btn btn-outline-primary">Search</button>
     </form>
-
-    <!-- Low Stock Dropdown -->
+ 
     <div class="mb-3">
         <button class="btn btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#lowStockList">
             <i class="bi bi-exclamation-triangle-fill me-1"></i> Show Low Stock Products
@@ -187,19 +287,16 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="collapse mb-4" id="lowStockList">
         <div class="card card-body border border-danger">
             <h5 class="text-danger mb-3"><i class="bi bi-box-seam-fill me-1"></i> Low Stock Items</h5>
-            <?php
-            if (count($lowStockProducts) > 0) {
-                foreach ($lowStockProducts as $prod) {
-                    echo '<div class="text-danger mb-1">⚠️ ' . htmlspecialchars($prod['product_name']) . ' — Stock: ' . $prod['product_stock'] . '</div>';
-                }
-            } else {
-                echo '<div class="text-success">✅ All products are sufficiently stocked.</div>';
-            }
-            ?>
+            <?php if (count($lowStockProducts) > 0): ?>
+                <?php foreach ($lowStockProducts as $prod): ?>
+                    <div class="text-danger mb-1">⚠️ <?= htmlspecialchars($prod['product_name']) ?> — Stock: <?= $prod['product_stock'] ?></div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="text-success">✅ All products are sufficiently stocked.</div>
+            <?php endif; ?>
         </div>
     </div>
-
-    <!-- Products List -->
+ 
     <div class="row">
         <?php if (count($products) > 0): ?>
             <?php foreach ($products as $prod): ?>
@@ -208,7 +305,7 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="card <?= $isLow ? 'border border-danger' : '' ?>">
                         <div class="card-body">
                             <h5 class="card-title"><?= htmlspecialchars($prod['product_name']) ?></h5>
-                            <p>Price: <strong>ر.س<?= number_format($prod['product_price'], 2) ?></strong></p>
+                            <p>Price: <strong>₱<?= number_format($prod['product_price'], 2) ?></strong></p>
                             <p>
                                 Stock: <?= $prod['product_stock'] ?>
                                 <?= $isLow ? '<span class="low-stock-label">⚠️ Low</span>' : '' ?>
@@ -226,13 +323,12 @@ $lowStockProducts = $lowStockStmt->fetchAll(PDO::FETCH_ASSOC);
         <?php endif; ?>
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("productSearch");
     const suggestionBox = document.getElementById("suggestions");
-
+ 
     searchInput.addEventListener("input", function () {
         const query = this.value;
         if (query.length < 1) {
@@ -240,7 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
             suggestionBox.innerHTML = "";
             return;
         }
-
+ 
         fetch(`search_suggestions.php?query=${encodeURIComponent(query)}`)
             .then(res => res.json())
             .then(data => {
@@ -263,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
     });
-
+ 
     document.addEventListener("click", (e) => {
         if (!searchInput.contains(e.target)) {
             suggestionBox.style.display = "none";
@@ -273,3 +369,5 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+ 
+ 

@@ -23,7 +23,7 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
         body { font-family: Arial, sans-serif; background-color: #ecf0f1; padding: 40px; }
         .order {
             background: white; padding: 20px; margin-bottom: 30px; border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
         }
         h2 { color: #2c3e50; }
         table {
@@ -32,8 +32,21 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
         th, td {
             padding: 8px; text-align: center; border: 1px solid #ccc;
         }
-        th { background-color: #2c3e50; color: white; }
+        th { background-color: #2c3e50; color: #ffffff; }
         .total { text-align: right; margin-top: 10px; font-weight: bold; }
+        a.back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #2c3e50;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        a.back-button:hover {
+            background: #34495e;
+        }
     </style>
 </head>
 <body>
@@ -78,6 +91,7 @@ $orders = $orderStmt->fetchAll(PDO::FETCH_ASSOC);
 <?php else: ?>
     <p>No orders found.</p>
 <?php endif; ?>
+<a href="admin_dashboard.php" class="back-button">Back to Dashboard</a>
 
 </body>
 </html>

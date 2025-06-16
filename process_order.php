@@ -15,7 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $order_date = date('Y-m-d H:i:s');
     $total_amount = 0;
 
-    // Calculate total from selected products
     if (isset($_POST['products'])) {
         foreach ($_POST['products'] as $product_id) {
             $quantity = $_POST['quantities'][$product_id];
@@ -27,20 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $subtotal = $product['product_price'] * $quantity;
                 $total_amount += $subtotal;
 
-                // Check if stock is enough
                 if ($product['product_stock'] < $quantity) {
                     die("Not enough stock for product ID $product_id.");
                 }
             }
         }
 
-        // Insert into orders table
         $orderStmt = $db->prepare("INSERT INTO orders (user_id, order_date, total_amount, order_status) VALUES (?, ?, ?, ?)");
-        $orderStmt->execute([$user_id, $order_date, $total_amount, 'Pending']);
+        $orderStmt->execute([$user_id, $order_date, $total_amount, 'Completed']);
 
         $order_id = $db->lastInsertId();
 
-        // Insert each product into order_items
         foreach ($_POST['products'] as $product_id) {
             $quantity = $_POST['quantities'][$product_id];
 
@@ -53,13 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $itemStmt = $db->prepare("INSERT INTO order_items (order_id, products_id, order_quantity, order_price) VALUES (?, ?, ?, ?)");
             $itemStmt->execute([$order_id, $product_id, $quantity, $price]);
 
-            // Reduce stock in products table
             $newStock = $product['product_stock'] - $quantity;
             $updateStock = $db->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
             $updateStock->execute([$newStock, $product_id]);
         }
 
-        header("Location: view_order_items.php"); // after successful order
+        header("Location: view_order_items.php"); 
         exit();
     } else {
         echo "No products selected.";

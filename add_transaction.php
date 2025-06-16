@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Allow both Admin and Inventory Staff
 if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     header("Location: login.php");
     exit();
@@ -24,12 +23,21 @@ if (isset($_POST['add_transaction'])) {
     $remarks = $_POST['remarks'];
 
     if ($type && $product_id && $quantity > 0) {
-        $con->addInventoryTransaction($con, $type, $product_id, $quantity, $remarks);
+
+        if ($type == "Add") {
+            $stmt = $db->prepare("UPDATE products SET product_stock = product_stock + ? WHERE products_id = ?");
+            $stmt->execute([$quantity, $product_id]);
+        } 
+
+        $stmt = $db->prepare("INSERT INTO inventory_transactions (transaction_type, products_id, quantity, remarks) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$type, $product_id, $quantity, $remarks]);
+
         $message = "Transaction successfully added.";
     } else {
         $message = "Please fill out all fields.";
     }
 }
+
 
 $products = $db->query("SELECT products_id, product_name, product_stock FROM products")->fetchAll();
 $stmt = $db->query("SELECT it.transaction_id, it.transaction_type, p.product_name, it.quantity, it.remarks, it.transaction_date FROM inventory_transactions it JOIN products p ON it.products_id = p.products_id ORDER BY it.transaction_date DESC");
@@ -44,7 +52,7 @@ $transactions = $stmt->fetchAll();
     <style>
         body { font-family: Arial, sans-serif; background-color: #ecf0f1; margin: 0; padding: 0; }
 
-        /* Sidebar */
+        
         .sidebar {
             width: 200px;
             height: 100vh;
@@ -88,9 +96,8 @@ $transactions = $stmt->fetchAll();
 
         
 
-        /* Main Content */
         .container {
-            margin-left: 220px; /* space for sidebar */
+            margin-left: 220px; 
             padding: 40px;
             width: calc(100% - 240px);
             background: #fff;
