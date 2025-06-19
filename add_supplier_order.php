@@ -4,7 +4,7 @@ session_start();
 
 if (!isset($_SESSION['user_id']) || 
     ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff')) {
-    header("Location: supplier_orders.php?status=added");
+    header("Location: login.php");
     exit();
 }
 
@@ -13,6 +13,7 @@ $db = $con->opencon();
 
 $suppliers = $db->query("SELECT supplier_id, supplier_name FROM supplier")->fetchAll(PDO::FETCH_ASSOC);
 
+$sweetAlert = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $supplier_id = $_POST['supplier_id'];
     $order_date = $_POST['order_date'];
@@ -24,7 +25,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                           VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([$supplier_id, $order_date, $expected_date, $total_cost, $status]);
 
-    header("Location: supplier_orders.php");
+    $sweetAlert = "
+    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+    <script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Order Added!',
+        showConfirmButton: false,
+        timer: 1500
+    }).then(() => {
+        window.location.href = 'supplier_orders.php';
+    });
+    </script>";
 }
 ?>
 
@@ -75,5 +87,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </form>
 </div>
 
+<?= $sweetAlert ?>
 </body>
 </html>
