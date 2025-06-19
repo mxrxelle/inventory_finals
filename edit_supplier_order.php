@@ -2,7 +2,8 @@
 require_once('classes/database.php');
 session_start();
 
-if (!isset($_SESSION['user_id']) || ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff')) {
+if (!isset($_SESSION['user_id']) || 
+    ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff')) {
     header("Location: login.php");
     exit();
 }
@@ -34,12 +35,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>";
 }
 
-$id = $_GET['id'];
+if (!isset($_GET['id']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: supplier_orders.php");
+    exit();
+}
+
+$id = $_GET['id'] ?? $_POST['id'];
 $stmt = $db->prepare("SELECT * FROM supplier_orders WHERE supplier_order_id = ?");
 $stmt->execute([$id]);
 $order = $stmt->fetch(PDO::FETCH_ASSOC);
-?>
 
+if (!$order) {
+    echo "Order not found!";
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -63,7 +73,6 @@ $order = $stmt->fetch(PDO::FETCH_ASSOC);
         <button type="submit" class="btn btn-primary">Update Order</button>
         <a href="supplier_orders.php" class="btn btn-secondary">Cancel</a>
     </form>
-
     <?= $sweetAlert ?>
 </body>
 </html>
