@@ -217,7 +217,15 @@ tr:hover {
             </ul>
         </li>
 
-        <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
+        <li class="has-submenu">
+    <a href="#"><i class="bi bi-truck"></i> Suppliers</a>
+    <ul class="submenu">
+       
+        <li><a href="supplier_orders.php">Supplier Orders</a></li>
+    </ul>
+</li>
+
+        
         <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
     </ul>
 </div>
