@@ -23,8 +23,12 @@ $total_amount = 0;
 
 if (!empty($order_id)) {
     $order_items = $db->getOrderItems($order_id);
-    foreach ($order_items as $item) {
-        $total_amount += $item['subtotal'];
+    $orderDetails = $db->getOrderDetailsById($order_id); 
+
+    if ($orderDetails) {
+        $total_amount = $orderDetails['total_amount']; 
+    } else {
+        $error = "Order details not found.";
     }
 }
 
@@ -47,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $con->beginTransaction();
 
             $db->addPayment($order_id, $user_id, $payment_method, $amount);
-            $db->addShipping($order_id, $user_id, $tracking_number, $shipping_method, $estimated_delivery_date, $delivery_status);
+            $db->addShippingDelivery($order_id, $user_id, $tracking_number, $shipping_method, $estimated_delivery_date, $delivery_status);
             $db->updateOrderStatus($order_id, 'Completed');
 
             $con->commit();
@@ -121,26 +125,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1>Add Payment</h1>
 
     <div class="form-container">
-        <?php if ($success): ?>
-            <script>
-                Swal.fire({
-                    title: 'Success!',
-                    text: '<?= $success ?>',
-                    icon: 'success',
-                    showCancelButton: true,
-                    confirmButtonText: 'Go to Sales Report',
-                    cancelButtonText: 'Back to Orders'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = 'sales_report.php';
-                    } else {
-                        window.location.href = 'orders.php';
-                    }
-                });
-            </script>
-        <?php elseif ($error): ?>
-            <div class="alert alert-danger"><?= $error ?></div>
+<?php if ($success): ?>
+    <script>
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+            Swal.fire({
+                title: 'Success!',
+                text: '<?= $success ?>',
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonText: 'Go to Sales Report',
+                cancelButtonText: 'Back to Orders'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'sales_report.php';
+                } else {
+                    window.location.href = 'orders.php';
+                }
+            });
+        <?php else: ?>
+            Swal.fire({
+                title: 'Success!',
+                text: '<?= $success ?>',
+                icon: 'success',
+                confirmButtonText: 'Back to Orders'
+            }).then((result) => {
+                window.location.href = 'orders.php';
+            });
         <?php endif; ?>
+    </script>
+<?php elseif ($error): ?>
+    <div class="alert alert-danger"><?= $error ?></div>
+<?php endif; ?>
+
 
         <form method="POST" action="">
             <input type="hidden" name="order_id" value="<?= htmlspecialchars($order_id) ?>">
@@ -171,9 +187,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php foreach ($order_items as $item): ?>
                             <tr>
                                 <td><?= htmlspecialchars($item['product_name']) ?></td>
-                                <td><?= $item['quantity'] ?></td>
-                                <td>₱<?= number_format($item['price'], 2) ?></td>
-                                <td>₱<?= number_format($item['subtotal'], 2) ?></td>
+                                <td><?= isset($item['quantity']) ? htmlspecialchars($item['quantity']) : '0' ?></td>
+                                <td>₱<?= isset($item['price']) ? number_format($item['price'], 2) : '0.00' ?></td>
+                                <td>₱<?= isset($item['subtotal']) ? number_format($item['subtotal'], 2) : '0.00' ?></td>
+
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

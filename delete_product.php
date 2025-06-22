@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['product_id'])) {
     $products_id = (int)$_GET['product_id'];
 
     // Use method from database.php to check
-    $product = $con->getProductByIdForDelete($products_id);
+    $product = $con->deleteProductById($products_id);
 
     if ($product) {
         if ($con->deleteProductById($products_id)) {

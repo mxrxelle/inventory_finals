@@ -115,10 +115,17 @@ class database{
 
     public function getProductById($products_id) {
         $con = $this->opencon();
-        $stmt = $con->prepare("SELECT product_price, product_stock FROM products WHERE products_id = ?");
+        $stmt = $con->prepare("SELECT * FROM products WHERE products_id = ?");
         $stmt->execute([$products_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function getAllProducts() {
+    $con = $this->opencon();
+    $stmt = $con->query("SELECT * FROM products");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 
     public function getAvailableProducts() {
         $con = $this->opencon();
@@ -195,10 +202,88 @@ class database{
 
     public function getOrderItems($order_id) {
         $con = $this->opencon();
-        $stmt = $con->prepare("SELECT p.product_name, oi.order_quantity, oi.order_price FROM order_items oi JOIN products p ON oi.products_id = p.products_id WHERE oi.order_id = ?");
+        $stmt = $con->prepare("
+            SELECT 
+                p.product_name, 
+                oi.order_quantity AS quantity, 
+                oi.order_price AS price, 
+                (oi.order_quantity * oi.order_price) AS subtotal
+            FROM order_items oi
+            JOIN products p ON oi.products_id = p.products_id
+            WHERE oi.order_id = ?
+            ");
         $stmt->execute([$order_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
+    public function getAllOrdersForReport() {
+        $con = $this->opencon();
+        $stmt = $con->prepare("
+        SELECT 
+            o.order_id,
+            p.product_name,
+            oi.order_quantity,
+            oi.order_price
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.products_id = p.products_id
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getOrderItemsForReport($order_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT p.product_name, oi.order_quantity, oi.order_price 
+                           FROM order_items oi 
+                           JOIN products p ON oi.products_id = p.products_id 
+                           WHERE oi.order_id = ?");
+        $stmt->execute([$order_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    public function getSalesReportData() {
+    $con = $this->opencon();
+    $stmt = $con->prepare("
+        SELECT 
+            o.order_id, 
+            o.order_date, 
+            o.total_amount,
+            u.username,
+            p.product_name,
+            oi.order_quantity,
+            oi.order_price
+        FROM orders o
+        JOIN users u ON o.user_id = u.user_id
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.products_id = p.products_id
+    ");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+
+    public function getOrderById($order_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT * FROM orders WHERE order_id = ?");
+        $stmt->execute([$order_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getOrderDetailsById($order_id) {
+    $con = $this->opencon();
+    $stmt = $con->prepare("
+        SELECT o.*, u.first_name, u.last_name
+        FROM orders o
+        JOIN users u ON o.user_id = u.user_id
+        WHERE o.order_id = ?
+    ");
+    $stmt->execute([$order_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 
     public function updateOrderStatus($order_id, $status = 'Completed') {
         $con = $this->opencon();
@@ -211,6 +296,90 @@ class database{
         $stmt = $con->prepare("UPDATE orders SET order_status = 'Deleted' WHERE order_id = ?");
         return $stmt->execute([$order_id]);
     }
+
+    public function processOrder($user_id, $products) {
+    $con = $this->opencon();
+    $order_date = date('Y-m-d H:i:s');
+    $total_amount = 0;
+
+    try {
+        $con->beginTransaction();
+
+        foreach ($products as $product_id => $quantity) {
+            $stmt = $con->prepare("SELECT product_price, product_stock FROM products WHERE products_id = ?");
+            $stmt->execute([$product_id]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$product) {
+                throw new Exception("Product ID $product_id not found.");
+            }
+
+            if ($product['product_stock'] < $quantity) {
+                throw new Exception("Not enough stock for product ID $product_id.");
+            }
+
+            $subtotal = $product['product_price'] * $quantity;
+            $total_amount += $subtotal;
+        }
+
+        $orderStmt = $con->prepare("INSERT INTO orders (user_id, order_date, total_amount, order_status) VALUES (?, ?, ?, ?)");
+        $orderStmt->execute([$user_id, $order_date, $total_amount, 'Pending']);
+        $order_id = $con->lastInsertId();
+
+        foreach ($products as $product_id => $quantity) {
+            $stmt = $con->prepare("SELECT product_price, product_stock FROM products WHERE products_id = ?");
+            $stmt->execute([$product_id]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $price = $product['product_price'];
+            $newStock = $product['product_stock'] - $quantity;
+
+            $itemStmt = $con->prepare("INSERT INTO order_items (order_id, products_id, order_quantity, order_price) VALUES (?, ?, ?, ?)");
+            $itemStmt->execute([$order_id, $product_id, $quantity, $price]);
+
+            $updateStock = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
+            $updateStock->execute([$newStock, $product_id]);
+        }
+
+        $con->commit();
+        return true;
+
+    } catch (Exception $e) {
+        $con->rollBack();
+        error_log("Order Processing Error: " . $e->getMessage());
+        return $e->getMessage();
+    }
+}
+    // ------------------ SHIPPING ------------------
+
+
+    public function addShippingDelivery($order_id, $user_id, $tracking_number, $shipping_method, $estimated_delivery_date, $delivery_status) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("INSERT INTO shipping_and_delivery 
+            (order_id, user_id, tracking_number, shipping_method, estimated_delivery_date, delivery_status)
+            VALUES (:order_id, :user_id, :tracking_number, :shipping_method, :estimated_delivery_date, :delivery_status)");
+        return $stmt->execute([
+            ':order_id' => $order_id,
+            ':user_id' => $user_id,
+            ':tracking_number' => $tracking_number,
+            ':shipping_method' => $shipping_method,
+            ':estimated_delivery_date' => $estimated_delivery_date,
+            ':delivery_status' => $delivery_status
+        ]);
+    }
+
+    public function getShippingAndDeliveryHistory() {
+         $con = $this->opencon();
+        $stmt = $con->prepare("
+            SELECT sd.*, o.order_date, u.username 
+            FROM shipping_and_delivery sd
+            JOIN orders o ON sd.order_id = o.order_id
+            JOIN users u ON sd.user_id = u.user_id
+            ORDER BY sd.estimated_delivery_date DESC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }   
 
     // ------------------ PAYMENTS ------------------
 
@@ -241,6 +410,25 @@ class database{
         return $stmt->execute([$name, $phone, $email]);
     }
 
+    public function addSupplierOrder($supplier_id, $order_date, $expected_delivery_date, $total_cost, $order_status) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("INSERT INTO supplier_orders (supplier_id, order_date, expected_delivery_date, total_cost, order_status) VALUES (?, ?, ?, ?, ?)");
+        return $stmt->execute([$supplier_id, $order_date, $expected_delivery_date, $total_cost, $order_status]);
+    }
+
+    public function updateSupplierOrder($supplier_order_id, $order_date, $total_cost) {
+    $con = $this->opencon();
+    $stmt = $con->prepare("UPDATE supplier_orders SET order_date = ?, total_cost = ? WHERE supplier_order_id = ?");
+    return $stmt->execute([$order_date, $total_cost, $supplier_order_id]);
+}
+    public function updateSupplier($supplier_id, $supplier_name, $supplier_phone, $supplier_email) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("UPDATE supplier SET supplier_name = ?, supplier_phonenumber = ?, supplier_email = ? WHERE supplier_id = ?");
+        return $stmt->execute([$supplier_name, $supplier_phone, $supplier_email, $supplier_id]);
+    }
+
+
+
     public function getAllSuppliers() {
         $con = $this->opencon();
         $stmt = $con->query("SELECT * FROM supplier");
@@ -253,24 +441,66 @@ class database{
         return $stmt->execute([$supplier_id]);
     }
 
+    public function deleteSupplierOrderById($supplier_order_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("DELETE FROM supplier_orders WHERE supplier_order_id = ?");
+        return $stmt->execute([$supplier_order_id]);
+    }
+
+    public function getSupplierOrders() {
+        $con = $this->opencon();
+        $stmt = $con->prepare("
+            SELECT so.*, s.supplier_name
+            FROM supplier_orders so
+            JOIN supplier s ON so.supplier_id = s.supplier_id
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function getSupplierById($supplier_id) {
+    $con = $this->opencon();
+    $stmt = $con->prepare("SELECT * FROM supplier WHERE supplier_id = ?");
+    $stmt->execute([$supplier_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
+    public function getSupplierOrderById($supplier_order_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT * FROM supplier_orders WHERE supplier_order_id = ?");
+        $stmt->execute([$supplier_order_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function confirmSupplierOrder($supplier_order_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("UPDATE supplier_orders SET order_status = 'Confirmed' WHERE supplier_order_id = ?");
+        return $stmt->execute([$supplier_order_id]);
+    }
+
+
+
     // ------------------ INVENTORY TRANSACTIONS ------------------
 
     public function addInventoryTransaction($type, $products_id, $quantity, $remarks) {
-        $types = ['Add' => 1, 'Remove' => -1, 'Sale' => -1, 'Return' => 1, 'Adjustment' => 0];
-        $con = $this->opencon();
+    $types = ['Add' => 1, 'Remove' => -1, 'Sale' => -1, 'Return' => 1, 'Adjustment' => 0];
+    $con = $this->opencon();
 
-        $stmt = $con->prepare("INSERT INTO inventory_transactions (transaction_type, products_id, quantity, remarks, transaction_date) VALUES (?, ?, ?, ?, NOW())");
-        $stmt->execute([$type, $products_id, $quantity, $remarks]);
+    $stmt = $con->prepare("INSERT INTO inventory_transactions (transaction_type, products_id, quantity, remarks, transaction_date) VALUES (?, ?, ?, ?, NOW())");
+    $result = $stmt->execute([$type, $products_id, $quantity, $remarks]);
 
-        if ($type === 'Adjustment') {
-            $update = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
-            $update->execute([$quantity, $products_id]);
-        } elseif (isset($types[$type])) {
-            $change = $types[$type] * $quantity;
-            $update = $con->prepare("UPDATE products SET product_stock = product_stock + ? WHERE products_id = ?");
-            $update->execute([$change, $products_id]);
-        }
+    if ($type === 'Adjustment') {
+        $update = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
+        $update->execute([$quantity, $products_id]);
+    } elseif (isset($types[$type])) {
+        $change = $types[$type] * $quantity;
+        $update = $con->prepare("UPDATE products SET product_stock = product_stock + ? WHERE products_id = ?");
+        $update->execute([$change, $products_id]);
     }
+
+    return $result; 
+}
+
 
     public function getAllTransactions() {
         $con = $this->opencon();

@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Fetch existing product details (GET)
 if (isset($_GET['product_id'])) {
     $product_id = $_GET['product_id'];
-    $product = $con->getProductDetailsById($product_id);
+    $product = $con->getProductById($product_id);
 
     if (!$product) {
         echo "<script>

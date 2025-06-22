@@ -13,7 +13,7 @@ if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
 }
 
 $db = new database();
-$products = $db->getAllAvailableProducts();
+$products = $db->getAvailableProducts();
 ?>
 
 

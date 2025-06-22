@@ -7,14 +7,13 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Allow both Admin and Inventory Staff
 if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     header("Location: login.php");
     exit();
 }
 
 $db = new database();
-$suppliers = $db->getSuppliers();
+$suppliers = $db->getAllSuppliers();
 ?>
 
 <!DOCTYPE html>

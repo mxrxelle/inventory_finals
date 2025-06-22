@@ -23,7 +23,7 @@ if (isset($_POST['add_transaction'])) {
     $remarks = $_POST['remarks'];
 
     if ($type && $product_id && $quantity > 0) {
-        $result = $db->addTransaction($type, $product_id, $quantity, $remarks);
+        $result = $db->addInventoryTransaction($type, $product_id, $quantity, $remarks);
         $message = $result ? "Transaction successfully added." : "Failed to add transaction.";
     } else {
         $message = "Please fill out all fields.";

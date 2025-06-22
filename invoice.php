@@ -16,7 +16,7 @@ if (!$order) {
     die('Order not found.');
 }
 
-$items = $con->getOrderItemsByOrderId($order_id);
+$items = $con->getOrderItems($order_id);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -109,9 +109,9 @@ $items = $con->getOrderItemsByOrderId($order_id);
             <?php foreach ($items as $item): ?>
                 <tr>
                     <td><?= htmlspecialchars($item['product_name']) ?></td>
-                    <td><?= $item['order_quantity'] ?></td>
-                    <td>₱<?= number_format($item['order_price'], 2) ?></td>
-                    <td>₱<?= number_format($item['order_quantity'] * $item['order_price'], 2) ?></td>
+                    <td><?= $item['quantity'] ?></td>
+                    <td>₱<?= number_format($item['price'], 2) ?></td>
+                    <td>₱<?= number_format($item['subtotal'], 2) ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>

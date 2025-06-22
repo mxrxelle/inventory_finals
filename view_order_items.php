@@ -121,9 +121,10 @@ $items = $db->getOrderItems($orderId);
             <?php foreach ($items as $item): ?>
                 <tr>
                     <td><?= htmlspecialchars($item['product_name']) ?></td>
-                    <td><?= $item['order_quantity'] ?></td>
-                    <td><?= number_format($item['order_price'], 2) ?></td>
-                    <td><?= number_format($item['order_quantity'] * $item['order_price'], 2) ?></td>
+                    <td><?= $item['quantity'] ?></td>
+                    <td>₱<?= number_format($item['price'], 2) ?></td>
+                    <td>₱<?= number_format($item['subtotal'], 2) ?></td>
+
                 </tr>
             <?php endforeach; ?>
         </tbody>
