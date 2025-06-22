@@ -14,10 +14,13 @@ if (!isset($_GET['id'])) {
 $user_id = $_GET['id'];
 
 $db = new database();
-$con = $db->opencon();
+$user = $db->getUserById($user_id);
 
-$stmt = $con->prepare("DELETE FROM users WHERE user_id = ?");
-if ($stmt->execute([$user_id])) {
+if (!$user) {
+    die("User not found.");
+}
+
+if ($db->deleteUser($user_id)) {
     header("Location: users.php");
     exit();
 } else {

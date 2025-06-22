@@ -13,9 +13,8 @@ if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     exit();
 }
 
-$con = new database();
-$stmt = $con->opencon()->query("SELECT * FROM supplier");
-$suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$db = new database();
+$suppliers = $db->getSuppliers();
 ?>
 
 <!DOCTYPE html>
@@ -32,11 +31,12 @@ $suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
         }
- 
+
         body {
             background-color: #ecf0f1;
         }
-           .sidebar {
+
+        .sidebar {
             width: 240px;
             height: 100vh;
             background-color: rgb(0, 70, 175);
@@ -44,7 +44,7 @@ $suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             position: fixed;
             padding: 20px;
         }
- 
+
         .sidebar h2 {
             margin-bottom: 30px;
             font-size: 1.8rem;
@@ -53,16 +53,16 @@ $suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             padding-left: 10px;
             margin-top: 30px;
         }
- 
+
         .sidebar ul {
             list-style: none;
             padding: 0;
         }
- 
+
         .sidebar ul li {
             margin: 15px 0;
         }
- 
+
         .sidebar ul li a {
             color: white;
             text-decoration: none;
@@ -71,142 +71,155 @@ $suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 4px;
             transition: background-color 0.3s;
         }
- 
+
         .sidebar ul li a:hover {
             background-color: #0056b3;
         }
- 
+
         .has-submenu > a::after {
             content: "\25BC";
             float: right;
             font-size: 0.7rem;
             transition: transform 0.3s;
         }
- 
+
         .submenu {
             list-style: none;
             padding-left: 20px;
             display: none;
         }
- 
+
         .has-submenu.active .submenu {
             display: block;
         }
- 
+
         .has-submenu.active > a::after {
             transform: rotate(180deg);
         }
- 
-  .main-content {
-    margin-left: 240px;
-    padding: 30px;
-}
- 
-.main-content h2 {
-    color: #0046af;
-    font-size: 36px;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
- 
-.main-content p {
-    color: #555;
-    margin-bottom: 25px;
-}
- 
-.add-btn {
-    margin-bottom: 15px;
-    display: inline-block;
-    padding: 8px 15px;
-    background: #ffc107;
-    color: #333;
-    text-decoration: none;
-    border-radius: 6px;
-    font-weight: 600;
-}
- 
-.table-container {
-    background-color: #fff;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
- 
-table {
-     width: 100%;
+
+        .main-content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+
+        .main-content h2 {
+            color: #0046af;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .main-content p {
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        .add-btn {
+            margin-bottom: 15px;
+            display: inline-block;
+            padding: 8px 15px;
+            background: #ffc107;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .add-btn:hover {
+            background: #e0a800;
+        }
+
+        .supplier-order-btn {
+            margin-left: 10px;
+            background: #28a745;
+            color: white;
+            transition: background 0.3s;
+        }
+
+        .supplier-order-btn:hover {
+            background: #218838;
+        }
+
+        .table-container {
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
             border-collapse: collapse;
             background: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
- 
-th, td {
-     padding: 12px;
+        }
+
+        th, td {
+            padding: 12px;
             border: 1px solid #ddd;
             text-align: center;
-}
- 
-th {
-    background-color: #0046af;
-    color: white;
-}
-td {
+        }
+
+        th {
+            background-color: #0046af;
+            color: white;
+        }
+
+        td {
             font-size: 0.95rem;
         }
- 
-tr:last-child td {
-    border-bottom: none;
-}
- 
-tr:hover {
-    background-color: #f9f9f9;
-}
- 
-.action-btn {
-    padding: 6px 12px;
-    margin: 2px;
-    font-size: 13px;
-    border-radius: 4px;
-    text-decoration: none;
-    color: white;
-    display: inline-block;
-    transition: 0.2s ease;
-}
- 
-.edit-btn {
-    background-color: #2980b9;
-}
- 
-.edit-btn:hover {
-    background-color: #2573a6;
-}
- 
-.delete-btn {
-    background-color: #c0392b;
-}
- 
-.delete-btn:hover {
-    background-color: #a83224;
-}
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            margin: 2px;
+            font-size: 13px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
+            display: inline-block;
+            transition: 0.2s ease;
+        }
+
+        .edit-btn {
+            background-color: #2980b9;
+        }
+
+        .edit-btn:hover {
+            background-color: #2573a6;
+        }
+
+        .delete-btn {
+            background-color: #c0392b;
+        }
+
+        .delete-btn:hover {
+            background-color: #a83224;
+        }
     </style>
 </head>
 <body>
- 
+
 <div class="sidebar">
-    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
+    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role']==='admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
     <ul>
-        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">
-            <i class="bi bi-house-door"></i> Dashboard</a>
-        </li>
-        
+        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>"><i class="bi bi-house-door"></i> Dashboard</a></li>
         <?php if ($_SESSION['role'] === 'admin'): ?>
             <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
         <?php endif; ?>
-
         <li><a href="products.php"><i class="bi bi-box"></i> Products</a></li>
         <li><a href="orders.php"><i class="bi bi-cart"></i> Orders</a></li>
-        
+
         <li class="has-submenu">
             <a href="#"><i class="bi bi-receipt"></i> Sales</a>
             <ul class="submenu">
@@ -218,25 +231,25 @@ tr:hover {
         </li>
 
         <li class="has-submenu">
-    <a href="#"><i class="bi bi-truck"></i> Suppliers</a>
-    <ul class="submenu">
-       
-        <li><a href="supplier_orders.php">Supplier Orders</a></li>
-    </ul>
-</li>
+            <a href="#"><i class="bi bi-cash-coin"></i> Transactions</a>
+            <ul class="submenu">
+                <li><a href="payments.php">Payment and Invoicing</a></li>
+                <li><a href="shipping_and_delivery.php">Shipping and Delivery</a></li>
+            </ul>
+        </li>
 
-        
+        <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
         <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
     </ul>
 </div>
 
- 
 <div class="main-content">
     <h2>Suppliers</h2>
     <p>Manage all your suppliers here. You can add, edit, or delete suppliers.</p>
- 
+
     <a href="add_supplier.php" class="add-btn">Add New Supplier</a>
- 
+    <a href="supplier_orders.php" class="add-btn supplier-order-btn">Supplier Orders</a>
+
     <div class="table-container">
         <table>
             <thead>
@@ -271,7 +284,7 @@ tr:hover {
         </table>
     </div>
 </div>
- 
+
 <script>
     document.querySelectorAll('.has-submenu > a').forEach(link => {
         link.addEventListener('click', function(e) {
@@ -280,7 +293,6 @@ tr:hover {
         });
     });
 </script>
- 
- 
+
 </body>
 </html>

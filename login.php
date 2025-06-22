@@ -2,32 +2,34 @@
 session_start();
 require_once('classes/database.php');
 $con = new database();
- 
+
 if (isset($_SESSION['user_id'])) {
-  if($_SESSION['role'] == 'admin'){
-    header("Location: admin_dashboard.php");
-    exit();
-  } elseif($_SESSION['role'] == 'inventory_staff'){
-    header("Location: inventory_dashboard.php");
-    exit();
-  }
+    if ($_SESSION['role'] === 'admin') {
+        header("Location: admin_dashboard.php");
+        exit();
+    } elseif ($_SESSION['role'] === 'inventory_staff') {
+        header("Location: inventory_dashboard.php");
+        exit();
+    }
 }
+
 $sweetAlertConfig = '';
- 
-if (isset($_POST['login'])) {
-  $username = $_POST['username'];
-  $password = $_POST['password'];
- 
-  $user = $con->loginUser($username, $password);
- 
-  if ($user) {
-    $_SESSION['user_id'] = $user['user_id'];
-    $_SESSION['first_name'] = $user['first_name'];
-    $_SESSION['last_name'] = $user['last_name'];
-    $_SESSION['role'] = $user['role'];  
-   
- 
-    $sweetAlertConfig = "
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+
+    // Call method in database.php
+    $user = $con->loginUser($username, $password);
+
+    if ($user) {
+        // Set session variables
+        $_SESSION['user_id'] = $user['user_id'];
+        $_SESSION['first_name'] = $user['first_name'];
+        $_SESSION['last_name'] = $user['last_name'];
+        $_SESSION['role'] = $user['role'];
+
+        $sweetAlertConfig = "
       <script src='./package/dist/sweetalert2.js'></script>
       <script>
         Swal.fire({

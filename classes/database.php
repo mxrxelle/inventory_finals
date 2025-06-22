@@ -10,186 +10,304 @@ class database{
         );
     }
 
-    function signupUser($firstname, $lastname, $username, $email, $password, $role, $created_at){
+    function signupUser($firstname, $lastname, $username, $email, $password, $role, $created_at = null) {
         $con = $this->opencon();
-
-        if($created_at === null){
-            $created_at = date('Y-m-d H:i:s'); 
+        if ($created_at === null) {
+            $created_at = date('Y-m-d H:i:s');
         }
-
-        try{
+        try {
             $con->beginTransaction();
-
-
             $stmt = $con->prepare("INSERT INTO users (first_name, last_name, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-
             $stmt->execute([$firstname, $lastname, $username, $email, $password, $role, $created_at]);
-
-            $userID = $con->lastInsertID();
+            $userID = $con->lastInsertId();
             $con->commit();
-
             return $userID;
-        }catch(PDOException $e){
-
+        } catch (PDOException $e) {
             $con->rollBack();
             error_log("Signup Error: " . $e->getMessage());
             return false;
         }
     }
 
+    function loginUser($username, $password) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT * FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user && password_verify($password, $user['password'])) {
+            return $user;
+        }
+        return false;
+    }
+
+    function getUserById($user_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT * FROM users WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    function updateUser($firstname, $lastname, $username, $email, $role, $user_id) {
+        try {
+            $con = $this->opencon();
+            $con->beginTransaction();
+            $stmt = $con->prepare("UPDATE users SET first_name=?, last_name=?, username=?, email=?, role=? WHERE user_id=?");
+            $stmt->execute([$firstname, $lastname, $username, $email, $role, $user_id]);
+            $con->commit();
+            return true;
+        } catch(PDOException $e){
+            $con->rollBack();
+            return false;
+        }
+    }
+
+    function deleteUser($user_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("DELETE FROM users WHERE user_id=?");
+        return $stmt->execute([$user_id]);
+    }
+
     function isUsernameExists($username) {
         $con = $this->opencon();
         $stmt = $con->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
         $stmt->execute([$username]);
-
-        $count = $stmt->fetchColumn();
-
-        return $count > 0;
+        return $stmt->fetchColumn() > 0;
     }
 
-    function isEmailExists($email){
+    function isEmailExists($email) {
         $con = $this->opencon();
         $stmt = $con->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
         $stmt->execute([$email]);
-
-        $count = $stmt->fetchColumn();
-
-        return $count > 0;
+        return $stmt->fetchColumn() > 0;
     }
 
-    function loginUser($username, $password){
+    public function getAllUsers() {
         $con = $this->opencon();
-        $stmt = $con->prepare("SELECT * FROM users WHERE username = ?"); 
-        $stmt->execute([$username]);
-
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user && password_verify($password, $user['password'])){
-
-            return $user;
-        }
-        return false;
-
+        $stmt = $con->query("SELECT * FROM users");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    function getUserById($user_id){
-    $con = $this->opencon();
-    $stmt = $con->prepare("SELECT * FROM users WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
+    // ------------------ CATEGORY ------------------
 
-function updateUser($firstname, $lastname, $email, $role, $user_id){
-    try {
+    public function getAllCategories() {
         $con = $this->opencon();
-        $con->beginTransaction();
-
-        $stmt = $con->prepare("UPDATE users SET first_name=?, last_name=?, email=?, role=? WHERE user_id=?");
-        $stmt->execute([$firstname, $lastname, $email, $role, $user_id]);
-
-        $con->commit();
-        return true;
-    } catch(PDOException $e){
-        $con->rollBack();
-        return false;
-    }
-}
-
-function deleteUser($user_id){
-    try {
-        $con = $this->opencon();
-        $stmt = $con->prepare("DELETE FROM users WHERE user_id=?");
-        return $stmt->execute([$user_id]);
-    } catch(PDOException $e){
-        return false;
-    }
-}
-
-public function getAllCategories() {
-    $con = $this->opencon();
-    $stmt = $con->prepare("SELECT * FROM Category");
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-public function addProduct($name, $category_id, $price, $stock) {
-    $con = $this->opencon();
-    $stmt = $con->prepare("INSERT INTO Products (product_name, category_id, product_price, product_stock) VALUES (?, ?, ?, ?)");
-    return $stmt->execute([$name, $category_id, $price, $stock]);
-}
-
-public function updateProduct($product_name, $product_price, $product_stock, $category_id, $products_id) {
-    try {
-        $con = $this->opencon();
-        $con->beginTransaction();
-
-        $stmt = $con->prepare("UPDATE Products SET product_name=?, product_price=?, product_stock=?, category_id=? WHERE products_id=?");
-        $stmt->execute([$product_name, $product_price, $product_stock, $category_id, $products_id]);
-
-        $con->commit();
-        return true;
-    } catch(PDOException $e){
-        $con->rollBack();
-        return false;
-    }
-}
-
-public function getAvailableProducts($con) {
-        $stmt = $con->prepare("SELECT * FROM products WHERE product_stock > 0");
+        $stmt = $con->prepare("SELECT * FROM Category");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getProductById($con, $products_id) {
+    // ------------------ PRODUCTS ------------------
+
+    public function addProduct($name, $category_id, $price, $stock) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("INSERT INTO Products (product_name, category_id, product_price, product_stock) VALUES (?, ?, ?, ?)");
+        return $stmt->execute([$name, $category_id, $price, $stock]);
+    }
+
+    public function updateProduct($product_name, $product_price, $product_stock, $category_id, $products_id) {
+        $con = $this->opencon();
+        $con->beginTransaction();
+        $stmt = $con->prepare("UPDATE Products SET product_name=?, product_price=?, product_stock=?, category_id=? WHERE products_id=?");
+        $stmt->execute([$product_name, $product_price, $product_stock, $category_id, $products_id]);
+        $con->commit();
+        return true;
+    }
+
+    public function getProductById($products_id) {
+        $con = $this->opencon();
         $stmt = $con->prepare("SELECT product_price, product_stock FROM products WHERE products_id = ?");
         $stmt->execute([$products_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function createOrder($con, $user_id, $order_date, $total_amount, $order_status) {
+    public function getAvailableProducts() {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT * FROM products WHERE product_stock > 0");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getFilteredProducts($categoryId = 0, $search = '') {
+        $con = $this->opencon();
+        $query = "SELECT * FROM Products WHERE 1=1";
+        $params = [];
+        if ($categoryId > 0) {
+            $query .= " AND category_id = ?";
+            $params[] = $categoryId;
+        }
+        if (!empty($search)) {
+            $query .= " AND product_name LIKE ?";
+            $params[] = '%' . $search . '%';
+        }
+        $stmt = $con->prepare($query);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function deleteProductById($products_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("DELETE FROM Products WHERE products_id = ?");
+        return $stmt->execute([$products_id]);
+    }
+
+    public function getLowStockProducts($categoryId = 0) {
+        $con = $this->opencon();
+        $query = "SELECT product_name, product_stock FROM Products WHERE product_stock <= 5";
+        $params = [];
+        if ($categoryId > 0) {
+            $query .= " AND category_id = ?";
+            $params[] = $categoryId;
+        }
+        $stmt = $con->prepare($query);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function searchProductByName($searchTerm) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT products_id, product_name FROM Products WHERE product_name LIKE ? LIMIT 10");
+        $stmt->execute(["%$searchTerm%"]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ------------------ ORDERS ------------------
+
+    public function createOrder($user_id, $order_date, $total_amount, $order_status) {
+        $con = $this->opencon();
         $stmt = $con->prepare("INSERT INTO orders (user_id, order_date, total_amount, order_status) VALUES (?, ?, ?, ?)");
         $stmt->execute([$user_id, $order_date, $total_amount, $order_status]);
         return $con->lastInsertId();
     }
 
-    public function addOrderItem($con, $order_id, $products_id, $quantity, $price) {
+    public function addOrderItem($order_id, $products_id, $quantity, $price) {
+        $con = $this->opencon();
         $stmt = $con->prepare("INSERT INTO order_items (order_id, products_id, order_quantity, order_price) VALUES (?, ?, ?, ?)");
         return $stmt->execute([$order_id, $products_id, $quantity, $price]);
     }
 
-    public function updateProductStock($con, $products_id, $new_stock) {
-        $stmt = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
-        return $stmt->execute([$new_stock, $products_id]);
+    public function getAllOrders() {
+        $con = $this->opencon();
+        $sql = "SELECT o.*, u.username FROM orders o JOIN users u ON o.user_id = u.user_id WHERE o.order_status != 'Deleted' ORDER BY o.order_date DESC";
+        $stmt = $con->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    function addInventoryTransaction($type, $products_id, $quantity, $remarks) {
-    $transactionTypes = [
-        'Add' => 1,
-        'Remove' => -1,
-        'Sale' => -1,
-        'Return' => 1,
-        'Adjustment' => 0,
-    ];
+    public function getOrderItems($order_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT p.product_name, oi.order_quantity, oi.order_price FROM order_items oi JOIN products p ON oi.products_id = p.products_id WHERE oi.order_id = ?");
+        $stmt->execute([$order_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-    $con = $this->opencon();
+    public function updateOrderStatus($order_id, $status = 'Completed') {
+        $con = $this->opencon();
+        $stmt = $con->prepare("UPDATE orders SET order_status = ? WHERE order_id = ?");
+        return $stmt->execute([$status, $order_id]);
+    }
 
-    $stmt = $con->prepare("INSERT INTO inventory_transactions (transaction_type, products_id, quantity, remarks, transaction_date) VALUES (?, ?, ?, ?, NOW())");
-    $stmt->execute([$type, $products_id, $quantity, $remarks]);
+    public function softDeleteOrder($order_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("UPDATE orders SET order_status = 'Deleted' WHERE order_id = ?");
+        return $stmt->execute([$order_id]);
+    }
 
-    if ($type === 'Adjustment') {
-        $updateStmt = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
-        $updateStmt->execute([$quantity, $products_id]);
-    } elseif (isset($transactionTypes[$type])) {
-        $stockChange = $transactionTypes[$type] * $quantity;
-        $updateStmt = $con->prepare("UPDATE products SET product_stock = product_stock + ? WHERE products_id = ?");
-        $updateStmt->execute([$stockChange, $products_id]);
+    // ------------------ PAYMENTS ------------------
+
+    public function addPayment($order_id, $user_id, $payment_method, $amount) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("INSERT INTO payment_and_invoicing (order_id, user_id, payment_method, amount_paid, payment_date) VALUES (?, ?, ?, ?, NOW())");
+        return $stmt->execute([$order_id, $user_id, $payment_method, $amount]);
+    }
+
+    public function getAllPayments() {
+        $con = $this->opencon();
+        $stmt = $con->query("SELECT pi.*, u.username FROM payment_and_invoicing pi LEFT JOIN users u ON pi.user_id = u.user_id ORDER BY pi.payment_date DESC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getTotalPaidByOrderId($order_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT SUM(amount_paid) AS total_paid FROM payment_and_invoicing WHERE order_id = ?");
+        $stmt->execute([$order_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // ------------------ SUPPLIERS ------------------
+
+    public function addSupplier($name, $email, $phone) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("INSERT INTO supplier (supplier_name, supplier_phonenumber, supplier_email) VALUES (?, ?, ?)");
+        return $stmt->execute([$name, $phone, $email]);
+    }
+
+    public function getAllSuppliers() {
+        $con = $this->opencon();
+        $stmt = $con->query("SELECT * FROM supplier");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function deleteSupplierById($supplier_id) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("DELETE FROM supplier WHERE supplier_id = ?");
+        return $stmt->execute([$supplier_id]);
+    }
+
+    // ------------------ INVENTORY TRANSACTIONS ------------------
+
+    public function addInventoryTransaction($type, $products_id, $quantity, $remarks) {
+        $types = ['Add' => 1, 'Remove' => -1, 'Sale' => -1, 'Return' => 1, 'Adjustment' => 0];
+        $con = $this->opencon();
+
+        $stmt = $con->prepare("INSERT INTO inventory_transactions (transaction_type, products_id, quantity, remarks, transaction_date) VALUES (?, ?, ?, ?, NOW())");
+        $stmt->execute([$type, $products_id, $quantity, $remarks]);
+
+        if ($type === 'Adjustment') {
+            $update = $con->prepare("UPDATE products SET product_stock = ? WHERE products_id = ?");
+            $update->execute([$quantity, $products_id]);
+        } elseif (isset($types[$type])) {
+            $change = $types[$type] * $quantity;
+            $update = $con->prepare("UPDATE products SET product_stock = product_stock + ? WHERE products_id = ?");
+            $update->execute([$change, $products_id]);
+        }
+    }
+
+    public function getAllTransactions() {
+        $con = $this->opencon();
+        $stmt = $con->query("SELECT it.*, p.product_name FROM inventory_transactions it JOIN products p ON it.products_id = p.products_id ORDER BY it.transaction_date DESC");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ------------------ DASHBOARD ------------------
+
+    public function getTotalProducts() {
+        return $this->opencon()->query("SELECT COUNT(*) FROM products")->fetchColumn();
+    }
+
+    public function getTotalCategories() {
+        return $this->opencon()->query("SELECT COUNT(DISTINCT category_id) FROM products")->fetchColumn();
+    }
+
+    public function getTotalUsers() {
+        return $this->opencon()->query("SELECT COUNT(*) FROM users")->fetchColumn();
+    }
+
+    public function getTotalSalesThisMonth($month) {
+        $con = $this->opencon();
+        $stmt = $con->prepare("SELECT SUM(total_amount) FROM orders WHERE DATE_FORMAT(order_date, '%Y-%m') = ?");
+        $stmt->execute([$month]);
+        return $stmt->fetchColumn() ?: 0;
+    }
+
+    public function getRecentOrders($limit = 5) {
+        $con = $this->opencon();
+        $stmt = $con->query("SELECT * FROM orders ORDER BY order_date DESC LIMIT $limit");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getSalesData($limit = 30) {
+        $con = $this->opencon();
+        $stmt = $con->query("SELECT DATE(order_date) AS date, SUM(total_amount) AS total FROM orders GROUP BY DATE(order_date) ORDER BY date DESC LIMIT $limit");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-
-
-
-}
-
-
-
-

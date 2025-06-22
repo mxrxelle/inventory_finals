@@ -159,7 +159,7 @@ if (isset($_SESSION['user_id'])) {
   <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="#">
-        <img src="logo.png" alt="Logo" />
+        <img src="images/logo.png" alt="Logo" />
         Sales & Inventory
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

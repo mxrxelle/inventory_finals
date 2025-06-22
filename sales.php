@@ -7,10 +7,8 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] !== 'admin' && $_SESSION[
     exit();
 }
 
-$con = new database();
-$db = $con->opencon();
-$stmt = $db->query("SELECT products_id, product_name, product_stock, product_price FROM products");
-$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$db = new database();
+$products = $db->getAllProducts();
 
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
@@ -45,7 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (count($items) === 0) {
             $message = 'Cart is empty.';
         } else {
-            $db->beginTransaction();
+            $con = $db->opencon();
+            $con->beginTransaction();
             try {
                 $total = 0;
 
@@ -57,27 +56,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                $stmt = $db->prepare("INSERT INTO orders (staff_id, order_date, total_amount, status) VALUES (?, NOW(), ?, 'Completed')");
-                $stmt->execute([$staff_id, $total]);
-                $order_id = $db->lastInsertId();
+                $order_id = $db->insertOrder($staff_id, $total);
 
                 foreach ($items as $pid => $qty) {
                     foreach ($products as $prod) {
                         if ($prod['products_id'] == $pid) {
                             $price = $prod['product_price'];
-                            $stmt = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, product_price) VALUES (?, ?, ?, ?)");
-                            $stmt->execute([$order_id, $pid, $qty, $price]);
-                            // Placeholder for inventory transaction function
-                            // addInventoryTransaction($db, 'Sale', $pid, $qty, "Order #$order_id Sale");
+                            $db->insertOrderItem($order_id, $pid, $qty, $price);
                         }
                     }
                 }
 
-                $db->commit();
+                $con->commit();
                 $_SESSION['cart'] = [];
                 $message = "Order placed successfully!";
             } catch (Exception $e) {
-                $db->rollBack();
+                $con->rollBack();
                 $message = "Order failed: " . $e->getMessage();
             }
         }

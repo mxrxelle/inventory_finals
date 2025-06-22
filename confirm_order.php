@@ -8,28 +8,38 @@ if (!isset($_SESSION['user_id']) ||
     exit();
 }
 
-$con = new database();
-$db = $con->opencon();
-
+$db = new database();
 $sweetAlert = "";
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];
-    $stmt = $db->prepare("UPDATE supplier_orders SET order_status = 'Approved' WHERE supplier_order_id = ?");
-    $stmt->execute([$id]);
-
-    $sweetAlert = "
-    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-    <script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Order Confirmed!',
-        showConfirmButton: false,
-        timer: 1500
-    }).then(() => {
-        window.location.href = 'supplier_orders.php';
-    });
-    </script>";
+    if ($db->confirmSupplierOrder($id)) {
+        $sweetAlert = "
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Order Confirmed!',
+            showConfirmButton: false,
+            timer: 1500
+        }).then(() => {
+            window.location.href = 'supplier_orders.php';
+        });
+        </script>";
+    } else {
+        $sweetAlert = "
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Failed to Confirm!',
+            text: 'Something went wrong.',
+            showConfirmButton: true
+        }).then(() => {
+            window.location.href = 'supplier_orders.php';
+        });
+        </script>";
+    }
 } else {
     header("Location: supplier_orders.php");
     exit();

@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Allow both Admin and Inventory Staff
 if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     header("Location: login.php");
     exit();
@@ -17,26 +16,21 @@ $first_name = $_SESSION['first_name'] ?? 'Admin';
 $last_name = $_SESSION['last_name'] ?? '';
 $full_name = $first_name . ' ' . $last_name;
 
-$con = new database();
-$db = $con->opencon();
+$db = new database();
 
-$totalProducts = $db->query("SELECT COUNT(*) FROM products")->fetchColumn();
-$totalCategories = $db->query("SELECT COUNT(DISTINCT category_id) FROM products")->fetchColumn();
-
+$totalProducts = $db->getTotalProducts();
+$totalCategories = $db->getTotalCategories();
 $currentMonth = date("Y-m");
-$stmt = $db->prepare("SELECT SUM(total_amount) FROM orders WHERE DATE_FORMAT(order_date, '%Y-%m') = :month");
-$stmt->execute(['month' => $currentMonth]);
-$totalSalesMonth = $stmt->fetchColumn() ?: 0;
-
-$totalUsers = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
-$recentOrders = $db->query("SELECT * FROM orders ORDER BY order_date DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
-$lowStockProducts = $db->query("SELECT product_name, product_stock FROM products WHERE product_stock <= 10 ORDER BY product_stock ASC")->fetchAll(PDO::FETCH_ASSOC);
-$salesDataQuery = $db->query("SELECT DATE(order_date) as date, SUM(total_amount) as total FROM orders GROUP BY DATE(order_date) ORDER BY date DESC LIMIT 30");
-$salesData = $salesDataQuery->fetchAll(PDO::FETCH_ASSOC);
+$totalSalesMonth = $db->getTotalSalesThisMonth($currentMonth);
+$totalUsers = $db->getTotalUsers();
+$recentOrders = $db->getRecentOrders();
+$lowStockProducts = $db->getLowStockProducts();
+$salesData = $db->getSalesData();
 
 $salesLabels = array_reverse(array_column($salesData, 'date'));
 $salesTotals = array_reverse(array_column($salesData, 'total'));
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -163,33 +157,41 @@ $salesTotals = array_reverse(array_column($salesData, 'total'));
 </head>
 <body>
 <div class="sidebar">
-    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
-    <ul>
-        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">
-            <i class="bi bi-house-door"></i> Dashboard</a>
-        </li>
-        
-        <?php if ($_SESSION['role'] === 'admin'): ?>
-            <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
-        <?php endif; ?>
+    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role']==='admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
+   <ul>
+  <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>"><i class="bi bi-house-door"></i> Dashboard</a></li>
+  <?php if ($_SESSION['role'] === 'admin'): ?>
+    <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
+  <?php endif; ?>
+  <li><a href="products.php"><i class="bi bi-box"></i> Products</a></li>
+  <li><a href="orders.php"><i class="bi bi-cart"></i> Orders</a></li>
 
-        <li><a href="products.php"><i class="bi bi-box"></i> Products</a></li>
-        <li><a href="orders.php"><i class="bi bi-cart"></i> Orders</a></li>
-        
-        <li class="has-submenu">
-            <a href="#"><i class="bi bi-receipt"></i> Sales</a>
-            <ul class="submenu">
-                <li><a href="add_transaction.php">Inventory Transactions</a></li>
-                <?php if ($_SESSION['role'] === 'admin'): ?>
-                    <li><a href="sales_report.php">Sales Report</a></li>
-                <?php endif; ?>
-            </ul>
-        </li>
-
-        <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
-        <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+  <li class="has-submenu">
+    <a href="#"><i class="bi bi-receipt"></i> Sales</a>
+    <ul class="submenu">
+      <li><a href="add_transaction.php">Inventory Transactions</a></li>
+      <?php if ($_SESSION['role'] === 'admin'): ?>
+        <li><a href="sales_report.php">Sales Report</a></li>
+      <?php endif; ?>
     </ul>
+  </li>
+
+  <li class="has-submenu">
+    <a href="#"><i class="bi bi-cash-coin"></i> Transactions</a>
+    <ul class="submenu">
+      <li><a href="payments.php">Payment and Invoicing</a></li>
+      <li><a href="shipping_and_delivery.php">Shipping and Delivery</a></li>
+    </ul>
+  </li>
+
+  <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
+  <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+</ul>
+
 </div>
+
+
+
 
 <div class="main-content">
     <h1>👋 Welcome, <?= htmlspecialchars($full_name) ?>!</h1>
@@ -205,7 +207,7 @@ $salesTotals = array_reverse(array_column($salesData, 'total'));
         </div>
         <div class="card">
             <h3>Total Sales This Month</h3>
-            <p data-target="<?= $totalSalesMonth ?>" class="money">₱0.00</p>
+            <p data-target="<?= $totalSalesMonth ?>" class="money">﷼0.00</p>
         </div>
         <div class="card">
             <h3>Total Users</h3>
@@ -226,7 +228,7 @@ $salesTotals = array_reverse(array_column($salesData, 'total'));
             <tr>
                 <td><?= $order['order_id'] ?></td>
                 <td><?= $order['order_date'] ?></td>
-                <td>₱<?= number_format($order['total_amount'], 2) ?></td>
+                <td>﷼<?= number_format($order['total_amount'], 2) ?></td>
                 <td><?= htmlspecialchars($order['order_status']) ?></td>
             </tr>
             <?php endforeach; ?>
@@ -234,7 +236,7 @@ $salesTotals = array_reverse(array_column($salesData, 'total'));
     </div>
 
     <div class="table-section">
-        <h3>Low Stock Products (≤10)</h3>
+        <h3>Low Stock Products</h3>
         <table>
             <tr>
                 <th>Product Name</th>
@@ -265,7 +267,7 @@ new Chart(ctx, {
     data: {
         labels: salesLabels,
         datasets: [{
-            label: 'Total Sales (₱)',
+            label: 'Total Sales (﷼)',
             data: salesData,
             backgroundColor: '#0046af',
             borderColor: '#ffc107',
@@ -291,12 +293,12 @@ document.querySelectorAll('.card p').forEach(counter => {
 
         if (count < target) {
             counter.innerText = counter.classList.contains('money')
-                ? `₱${(count + increment).toFixed(2)}`
+                ? `﷼${(count + increment).toFixed(2)}`
                 : Math.ceil(count + increment);
             setTimeout(updateCount, 10);
         } else {
             counter.innerText = counter.classList.contains('money')
-                ? `₱${target.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+                ? `﷼${target.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
                 : target;
         }
     };
@@ -306,17 +308,21 @@ document.querySelectorAll('.card p').forEach(counter => {
 
 <!-- Submenu Toggle Script (Dropdown Fix) -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const submenuToggles = document.querySelectorAll('.has-submenu > a');
+document.addEventListener('DOMContentLoaded', function() {
+    const submenuToggles = document.querySelectorAll('.has-submenu > a');
 
-        submenuToggles.forEach(function(toggle) {
-            toggle.addEventListener('click', function(e) {
-                e.preventDefault(); // Prevents default anchor click
+    submenuToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function(e) {
+            // Only prevent default behavior if the link is '#'
+            if (this.getAttribute('href') === '#') {
+                e.preventDefault();
                 const submenu = this.nextElementSibling;
-                submenu.classList.toggle('show'); // Toggles visibility
-            });
+                submenu.classList.toggle('show');
+            }
         });
     });
+});
 </script>
+
 </body>
 </html>

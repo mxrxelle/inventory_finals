@@ -1,4 +1,3 @@
-
 <?php
 require_once('classes/database.php');
 session_start();
@@ -15,19 +14,13 @@ if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
 }
 
 $db = new database();
-$con = $db->opencon();
 
-// Fetch categories for dropdown
-$catStmt = $con->query("SELECT * FROM Category");
-$categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+$categories = $db->getAllCategories();
 
-// Get category_id from URL, if any (fixed category)
 $selectedCategoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
 
-// SweetAlert config string
 $sweetAlertConfig = "";
 
-// When form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productName = trim($_POST['product_name']);
     $categoryId = $_POST['category_id'];
@@ -44,8 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               });
             </script>";
     } else {
-        $stmt = $con->prepare("INSERT INTO Products (product_name, category_id, product_price, product_stock) VALUES (?, ?, ?, ?)");
-        $result = $stmt->execute([$productName, $categoryId, $productPrice, $productStock]);
+        $result = $db->addProduct($productName, $categoryId, $productPrice, $productStock);
 
         if ($result) {
             $sweetAlertConfig = "
@@ -71,7 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -91,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="mb-3">
       <label for="category_id" class="form-label">Category</label>
-      <?php if ($selectedCategoryId > 0): 
+      <?php if ($selectedCategoryId > 0):
           // find category name
           $fixedCategoryName = '';
           foreach ($categories as $cat) {

@@ -8,10 +8,8 @@ if (!isset($_SESSION['user_id']) ||
     exit();
 }
 
-$con = new database();
-$db = $con->opencon();
-
-$suppliers = $db->query("SELECT supplier_id, supplier_name FROM supplier")->fetchAll(PDO::FETCH_ASSOC);
+$db = new database();
+$suppliers = $db->getAllSuppliers();
 
 $sweetAlert = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -21,22 +19,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $total_cost = $_POST['total_cost'];
     $status = $_POST['order_status'];
 
-    $stmt = $db->prepare("INSERT INTO supplier_orders (supplier_id, order_date, expected_delivery_date, total_cost, order_status)
-                          VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$supplier_id, $order_date, $expected_date, $total_cost, $status]);
-
-    $sweetAlert = "
-    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-    <script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Order Added!',
-        showConfirmButton: false,
-        timer: 1500
-    }).then(() => {
-        window.location.href = 'supplier_orders.php';
-    });
-    </script>";
+    if ($db->addSupplierOrder($supplier_id, $order_date, $expected_date, $total_cost, $status)) {
+        $sweetAlert = "
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Order Added!',
+            showConfirmButton: false,
+            timer: 1500
+        }).then(() => {
+            window.location.href = 'supplier_orders.php';
+        });
+        </script>";
+    } else {
+        $sweetAlert = "
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Failed to add order.',
+            showConfirmButton: true
+        });
+        </script>";
+    }
 }
 ?>
 

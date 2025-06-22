@@ -15,26 +15,15 @@ if (!isset($_GET['order_id']) || empty($_GET['order_id'])) {
 
 $orderId = $_GET['order_id'];
 
-$con = new database();
-$db = $con->opencon();
+$db = new database();
 
-// Get the specific order
-$orderStmt = $db->prepare("SELECT * FROM orders WHERE order_id = ?");
-$orderStmt->execute([$orderId]);
-$order = $orderStmt->fetch(PDO::FETCH_ASSOC);
-
+$order = $db->getOrderById($orderId);
 if (!$order) {
     echo "<p style='color:red;'>Order not found. <a href='orders.php'>Go back to Orders</a></p>";
     exit();
 }
 
-// Get order items
-$itemStmt = $db->prepare("SELECT p.product_name, oi.order_quantity, oi.order_price
-    FROM order_items oi
-    JOIN products p ON oi.products_id = p.products_id
-    WHERE oi.order_id = ?");
-$itemStmt->execute([$orderId]);
-$items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+$items = $db->getOrderItems($orderId);
 ?>
 
  

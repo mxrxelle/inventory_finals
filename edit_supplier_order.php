@@ -9,8 +9,6 @@ if (!isset($_SESSION['user_id']) ||
 }
 
 $con = new database();
-$db = $con->opencon();
-
 $sweetAlert = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -18,32 +16,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $expected_delivery = $_POST['expected_delivery'];
     $total_cost = $_POST['total_cost'];
 
-    $stmt = $db->prepare("UPDATE supplier_orders SET expected_delivery_date=?, total_cost=? WHERE supplier_order_id=?");
-    $stmt->execute([$expected_delivery, $total_cost, $id]);
-
-    $sweetAlert = "
-    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-    <script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Order Updated!',
-        showConfirmButton: false,
-        timer: 1500
-    }).then(() => {
-        window.location.href = 'supplier_orders.php';
-    });
-    </script>";
+    if ($con->updateSupplierOrder($id, $expected_delivery, $total_cost)) {
+        $sweetAlert = "
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Order Updated!',
+            showConfirmButton: false,
+            timer: 1500
+        }).then(() => {
+            window.location.href = 'supplier_orders.php';
+        });
+        </script>";
+    }
 }
 
-if (!isset($_GET['id']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+$id = $_GET['id'] ?? $_POST['id'] ?? null;
+
+if (!$id) {
     header("Location: supplier_orders.php");
     exit();
 }
 
-$id = $_GET['id'] ?? $_POST['id'];
-$stmt = $db->prepare("SELECT * FROM supplier_orders WHERE supplier_order_id = ?");
-$stmt->execute([$id]);
-$order = $stmt->fetch(PDO::FETCH_ASSOC);
+$order = $con->getSupplierOrderById($id);
 
 if (!$order) {
     echo "Order not found!";

@@ -2,19 +2,16 @@
 session_start();
 require_once('classes/database.php');
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-// Redirect Admin to their own dashboard if they access this by mistake
 if ($_SESSION['role'] === 'admin') {
     header('Location: admin_dashboard.php');
     exit();
 }
 
-// Only allow inventory_staff role
 if ($_SESSION['role'] !== 'inventory_staff') {
     header('Location: login.php');
     exit();
@@ -22,17 +19,10 @@ if ($_SESSION['role'] !== 'inventory_staff') {
 
 $full_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
 
-$con = new database();
-$db = $con->opencon();
-
-// Total Products
-$totalProducts = $db->query("SELECT COUNT(*) FROM products")->fetchColumn();
-
-// Total Categories
-$totalCategories = $db->query("SELECT COUNT(DISTINCT category_id) FROM products")->fetchColumn();
-
-// Low Stock Products
-$lowStockProducts = $db->query("SELECT product_name, product_stock FROM products WHERE product_stock <= 10 ORDER BY product_stock ASC")->fetchAll(PDO::FETCH_ASSOC);
+$db = new database();
+$totalProducts = $db->getTotalProducts();
+$totalCategories = $db->getTotalCategories();
+$lowStockProducts = $db->getLowStockProducts();
 ?>
 
 <!DOCTYPE html>
@@ -188,19 +178,15 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
 <body>
  
 <div class="sidebar">
-    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role'] === 'admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
+    <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role']==='admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
     <ul>
-        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>">
-            <i class="bi bi-house-door"></i> Dashboard</a>
-        </li>
-       
+        <li><a href="<?= ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'inventory_dashboard.php'; ?>"><i class="bi bi-house-door"></i> Dashboard</a></li>
         <?php if ($_SESSION['role'] === 'admin'): ?>
             <li><a href="users.php"><i class="bi bi-people"></i> Users</a></li>
         <?php endif; ?>
- 
         <li><a href="products.php"><i class="bi bi-box"></i> Products</a></li>
         <li><a href="orders.php"><i class="bi bi-cart"></i> Orders</a></li>
-       
+
         <li class="has-submenu">
             <a href="#"><i class="bi bi-receipt"></i> Sales</a>
             <ul class="submenu">
@@ -210,7 +196,15 @@ $lowStockProducts = $db->query("SELECT product_name, product_stock FROM products
                 <?php endif; ?>
             </ul>
         </li>
- 
+
+        <li class="has-submenu">
+            <a href="#"><i class="bi bi-cash-coin"></i> Transactions</a>
+            <ul class="submenu">
+                <li><a href="payments.php">Payment and Invoicing</a></li>
+                <li><a href="shipping_and_delivery.php">Shipping and Delivery</a></li>
+            </ul>
+        </li>
+
         <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
         <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
     </ul>

@@ -1,38 +1,42 @@
 <?php
-include 'classes/database.php';
+require_once('classes/database.php');
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     header("Location: login.php");
     exit();
 }
 
 $db = new database();
-$users = $db->getAllUsers();
-
-$full_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+$payments = $db->getAllPayments(); // Now using the method from database.php
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Users</title>
+    <title>Payment and Invoicing</title>
     <link rel="stylesheet" href="./bootstrap-5.3.3-dist/css/bootstrap.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
- 
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f4f6f9;
         }
- 
+
         .sidebar {
             width: 240px;
             height: 100vh;
@@ -41,7 +45,7 @@ $full_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
             position: fixed;
             padding: 20px;
         }
- 
+
         .sidebar h2 {
             margin-bottom: 30px;
             font-size: 1.8rem;
@@ -50,16 +54,16 @@ $full_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
             padding-left: 10px;
             margin-top: 30px;
         }
- 
+
         .sidebar ul {
             list-style: none;
             padding: 0;
         }
- 
+
         .sidebar ul li {
             margin: 15px 0;
         }
- 
+
         .sidebar ul li a {
             color: white;
             text-decoration: none;
@@ -68,108 +72,77 @@ $full_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
             border-radius: 4px;
             transition: background-color 0.3s;
         }
- 
-        .sidebar ul li a:hover {
+
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active {
             background-color: #0056b3;
         }
- 
+
         .has-submenu > a::after {
             content: "\25BC";
             float: right;
             font-size: 0.7rem;
             transition: transform 0.3s;
         }
- 
+
+        .has-submenu.active > a::after {
+            transform: rotate(180deg);
+        }
+
         .submenu {
             list-style: none;
             padding-left: 20px;
             display: none;
         }
- 
+
         .has-submenu.active .submenu {
             display: block;
         }
- 
-        .has-submenu.active > a::after {
-            transform: rotate(180deg);
-        }
- 
+
         .main-content {
             margin-left: 260px;
             padding: 40px 20px;
         }
- 
-        .main-content h1 {
-            margin-bottom: 20px;
+
+        h1 {
             color: rgb(0, 70, 175);
+            margin-bottom: 20px;
             font-weight: 700;
         }
- 
-        .add-btn {
-            margin-bottom: 15px;
-            display: inline-block;
-            padding: 8px 15px;
-            background: #ffc107;
-            color: #333;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-        }
- 
-        .add-btn:hover {
-            background: #e0a800;
-            color: white;
-        }
- 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+
+        .table-container {
             background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
- 
-        th, td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: center;
+
+        table th, table td {
+            vertical-align: middle;
         }
- 
-        th {
-            background-color: rgb(0, 70, 175);
-            color: white;
+
+        .dataTables_filter input {
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
         }
- 
-        td {
-            font-size: 0.95rem;
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f9f9f9;
         }
- 
-        a.button {
-            padding: 6px 12px;
-            background: #198754;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 0.85rem;
+
+        .btn-primary {
+            background-color: #0046af;
+            border: none;
         }
- 
-        a.button:hover {
-            background: #157347;
-        }
- 
-        a.delete {
-            background: #dc3545;
-        }
- 
-        a.delete:hover {
-            background: #bb2d3b;
+
+        .btn-primary:hover {
+            background-color: #003b96;
         }
     </style>
 </head>
 <body>
- 
-<!-- Sidebar -->
+
 <div class="sidebar">
     <h2><i class="bi bi-speedometer2"></i> <?= ($_SESSION['role']==='admin') ? 'Admin Panel' : 'Inventory Panel'; ?></h2>
    <ul>
@@ -201,58 +174,61 @@ $full_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
   <li><a href="suppliers.php"><i class="bi bi-truck"></i> Suppliers</a></li>
   <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
 </ul>
+</div>
 
-</div>
- 
-<!-- Main Content -->
 <div class="main-content">
-    <h1>Manage Users</h1>
- 
-    <a href="add_user.php" class="add-btn"><i class="bi bi-person-plus-fill"></i> Add New User</a>
- 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Created At</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach($users as $user): ?>
+    <h1>Payment and Invoicing</h1>
+    <div class="table-container">
+        <table id="paymentTable" class="table table-bordered table-striped">
+            <thead class="table-light">
                 <tr>
-                    <td><?= htmlspecialchars($user['user_id']) ?></td>
-                    <td><?= htmlspecialchars($user['first_name']) ?></td>
-                    <td><?= htmlspecialchars($user['last_name']) ?></td>
-                    <td><?= htmlspecialchars($user['username']) ?></td>
-                    <td><?= htmlspecialchars($user['email']) ?></td>
-                    <td><?= htmlspecialchars($user['role']) ?></td>
-                    <td><?= htmlspecialchars($user['created_at']) ?></td>
-                    <td>
-                        <a href="edit_user.php?id=<?= $user['user_id'] ?>" class="button">Edit</a>
-                        <a href="delete_user.php?id=<?= $user['user_id'] ?>" class="button delete" onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
+                    <th>Payment ID</th>
+                    <th>Order ID</th>
+                    <th>User</th>
+                    <th>Payment Method</th>
+                    <th>Amount Paid</th>
+                    <th>Payment Date</th>
                 </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <?php foreach ($payments as $pay): ?>
+                    <tr>
+                        <td><?= $pay['payment_id'] ?></td>
+                        <td><?= $pay['order_id'] ?></td>
+                        <td><?= htmlspecialchars($pay['username']) ?> (ID: <?= $pay['user_id'] ?>)</td>
+                        <td><?= htmlspecialchars($pay['payment_method']) ?></td>
+                        <td>₱<?= number_format($pay['amount_paid'], 2) ?></td>
+                        <td><?= date('M d, Y h:i A', strtotime($pay['payment_date'])) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
- 
-<!-- Submenu Toggle Script -->
+
+<!-- Scripts -->
+<script src="./bootstrap-5.3.3-dist/js/bootstrap.bundle.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script>
-    document.querySelectorAll('.has-submenu > a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            this.parentElement.classList.toggle('active');
+    $(document).ready(function () {
+        $('#paymentTable').DataTable({
+            order: [[5, 'desc']],
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search payments..."
+            }
+        });
+
+        document.querySelectorAll('.has-submenu > a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                this.parentElement.classList.toggle('active');
+            });
         });
     });
 </script>
- 
 
 </body>
 </html>

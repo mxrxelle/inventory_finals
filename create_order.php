@@ -7,16 +7,15 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Allow both Admin and Inventory Staff
 if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     header("Location: login.php");
     exit();
 }
 
-$con = new database();
-$stmt = $con->opencon()->query("SELECT * FROM products");
-$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$db = new database();
+$products = $db->getAllAvailableProducts();
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -139,9 +138,9 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <tr>
                     <th>Select</th>
                     <th>Product</th>
-                    <th>Price (₱)</th>
+                    <th>Price (﷼)</th>
                     <th>Quantity</th>
-                    <th>Subtotal (₱)</th>
+                    <th>Subtotal (﷼)</th>
                 </tr>
             </thead>
             <tbody>
@@ -161,7 +160,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </tbody>
         </table>
  
-        <h3>Total Amount: ₱<span id="totalAmount">0.00</span></h3>
+        <h3>Total Amount: ﷼<span id="totalAmount">0.00</span></h3>
  
        <div style="display: flex; gap: 10px;">
     <button type="submit" class="submit-btn" style="flex: 1;">Place Order</button>

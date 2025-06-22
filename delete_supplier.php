@@ -1,31 +1,20 @@
 <?php
 require_once('classes/database.php');
-$con = new database();
-
+$db = new database();
 $sweetAlertConfig = "";
 
-// Check if 'id' is provided in the URL
 if (!isset($_GET['id'])) {
     die("No supplier ID provided.");
 }
 
 $supplier_id = $_GET['id'];
-
-// Check if supplier exists
-$stmt = $con->opencon()->prepare("SELECT * FROM supplier WHERE supplier_id = ?");
-$stmt->execute([$supplier_id]);
-$supplier = $stmt->fetch(PDO::FETCH_ASSOC);
+$supplier = $db->getSupplierById($supplier_id);
 
 if (!$supplier) {
     die("Supplier not found.");
 }
 
-// Proceed to delete
-$deleteStmt = $con->opencon()->prepare("DELETE FROM supplier WHERE supplier_id = ?");
-$result = $deleteStmt->execute([$supplier_id]);
-
-if ($result) {
-    // Success alert then redirect
+if ($db->deleteSupplierById($supplier_id)) {
     $sweetAlertConfig = "
     <script>
         Swal.fire({
@@ -37,7 +26,6 @@ if ($result) {
         });
     </script>";
 } else {
-    // Error alert
     $sweetAlertConfig = "
     <script>
         Swal.fire('Error', 'Failed to delete supplier.', 'error');

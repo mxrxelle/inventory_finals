@@ -1,7 +1,5 @@
 <?php
 require_once('classes/database.php');
-$con = new database();
-
 $sweetAlertConfig = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -9,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $supplier_email = trim($_POST['supplier_email']);
     $supplier_phonenumber = trim($_POST['supplier_phonenumber']);
 
-    // Backend Safety Validations (in case JS is bypassed)
+    // Backend validation
     if (empty($supplier_name) || empty($supplier_email) || empty($supplier_phonenumber)) {
         $sweetAlertConfig = "
         <script>
@@ -28,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text: 'Please enter a valid email address.'
           });
         </script>";
-    } elseif (!preg_match('/^[0-9]{10,15}$/', $supplier_phonenumber)) { // Assuming PH format: 10-15 digits
+    } elseif (!preg_match('/^[0-9]{10,15}$/', $supplier_phonenumber)) {
         $sweetAlertConfig = "
         <script>
           Swal.fire({
@@ -38,10 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           });
         </script>";
     } else {
-        // Proceed to insert into suppliers table
-        $sql = "INSERT INTO supplier (supplier_name, supplier_phonenumber, supplier_email) VALUES (?, ?, ?)";
-        $stmt = $con->opencon()->prepare($sql);
-        $result = $stmt->execute([$supplier_name, $supplier_phonenumber, $supplier_email]);
+        $db = new database();
+        $result = $db->addSupplier($supplier_name, $supplier_email, $supplier_phonenumber);
 
         if ($result) {  
             $sweetAlertConfig = "
@@ -103,7 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-// JS Field Validation
 const supplierName = document.getElementById('supplier_name');
 const supplierEmail = document.getElementById('supplier_email');
 const supplierPhone = document.getElementById('supplier_phonenumber');
@@ -124,7 +119,6 @@ const isNotEmpty = (value) => value.trim() !== '';
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const isValidPhone = (value) => /^[0-9]{10,15}$/.test(value);
 
-// Attach validation
 validateField(supplierName, isNotEmpty);
 validateField(supplierEmail, isValidEmail);
 validateField(supplierPhone, isValidPhone);

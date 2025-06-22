@@ -2,7 +2,12 @@
 require_once('classes/database.php');
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
     header("Location: login.php");
     exit();
 }
@@ -35,9 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Fetch existing product details (GET)
 if (isset($_GET['product_id'])) {
     $product_id = $_GET['product_id'];
-    $stmt = $con->opencon()->prepare("SELECT * FROM Products WHERE products_id = ?");
-    $stmt->execute([$product_id]);
-    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+    $product = $con->getProductDetailsById($product_id);
 
     if (!$product) {
         echo "<script>
@@ -54,6 +57,7 @@ if (isset($_GET['product_id'])) {
     exit();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>

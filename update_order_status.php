@@ -15,14 +15,10 @@ if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
 
 if (isset($_GET['order_id'])) {
     $order_id = $_GET['order_id'];
+    $new_status = 'Completed'; // hardcoded here; can be dynamic if needed
 
     $db = new database();
-    $con = $db->opencon();
-
-    $sql = "UPDATE orders SET order_status = 'Completed' WHERE order_id = :order_id";
-    $stmt = $con->prepare($sql);
-    $stmt->bindParam(':order_id', $order_id, PDO::PARAM_INT);
-    $stmt->execute();
+    $db->updateOrderStatus($order_id, $new_status);
 
     header("Location: orders.php");
     exit();
