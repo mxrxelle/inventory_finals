@@ -160,10 +160,10 @@ button[type="submit"]:hover {
           <div class="card-body">
             <form method="POST" id="loginForm" novalidate>
               <div class="mb-3">
-                <label for="username" class="form-label">Username or Email</label>
+                <label for="username" class="form-label">Username</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-person-circle"></i></span>
-                  <input type="text" name="username" id="username" class="form-control" placeholder="Enter username or email" required>
+                  <input type="text" name="username" id="username" class="form-control" placeholder="Enter username" required>
                   <div class="invalid-feedback">This field is required.</div>
                 </div>
               </div>
