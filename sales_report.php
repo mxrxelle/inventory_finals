@@ -29,8 +29,9 @@ foreach ($filtered_orders as &$order) {
     $paymentInfo = $db->getTotalPaidByOrderId($order['order_id']);
     $totalPaid = $paymentInfo['total_paid'] ?? 0;
 
-    $order['total_paid'] = $totalPaid;
-    $order['payment_status'] = ($totalPaid >= $order['total_amount']) ? 'Paid' : 'Unpaid';
+    $total_paid = isset($row['total_paid']) ? $row['total_paid'] : '0.00';
+$payment_status = isset($row['payment_status']) ? $row['payment_status'] : 'Not Paid';
+
 }
 unset($order); // break reference to avoid accidental overwrite
 

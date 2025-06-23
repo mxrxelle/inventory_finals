@@ -245,23 +245,25 @@ class database{
 
     public function getSalesReportData() {
     $con = $this->opencon();
-    $stmt = $con->prepare("
-        SELECT 
-            o.order_id, 
-            o.order_date, 
-            o.total_amount,
-            u.username,
-            p.product_name,
-            oi.order_quantity,
-            oi.order_price
-        FROM orders o
-        JOIN users u ON o.user_id = u.user_id
-        JOIN order_items oi ON o.order_id = oi.order_id
-        JOIN products p ON oi.products_id = p.products_id
-    ");
+    $stmt = $con->prepare("SELECT * FROM orders ORDER BY order_date DESC");
     $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Enrich orders manually just like before
+    foreach ($orders as &$order) {
+        $stmtPayment = $con->prepare("SELECT SUM(amount_paid) AS total_paid FROM payment_and_invoicing WHERE order_id = ?");
+        $stmtPayment->execute([$order['order_id']]);
+        $payment = $stmtPayment->fetch(PDO::FETCH_ASSOC);
+
+        $order['total_paid'] = $payment['total_paid'] ?? 0;
+        $order['payment_status'] = ($order['total_paid'] >= $order['total_amount']) ? 'Paid' : 'Unpaid';
+    }
+
+    return $orders;
 }
+
+
+
 
 
 
