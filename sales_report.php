@@ -86,8 +86,8 @@ unset($order); // break reference to avoid accidental overwrite
             <h5>Order #<?= $order['order_id'] ?></h5>
             <p><strong>Date:</strong> <?= $order['order_date'] ?></p>
             <p><strong>Status:</strong> <?= htmlspecialchars($order['order_status'] ?? 'N/A') ?></p>
-            <p><strong>Total Amount:</strong> ₱<?= number_format($order['total_amount'], 2) ?></p>
-            <p><strong>Total Paid:</strong> ₱<?= number_format($order['total_paid'], 2) ?></p>
+            <p><strong>Total Amount:</strong> ﷼<?= number_format($order['total_amount'], 2) ?></p>
+            <p><strong>Total Paid:</strong> ﷼<?= number_format($order['total_paid'], 2) ?></p>
             <p><strong>Payment Status:</strong>
               <?= ($order['payment_status'] === 'Paid') ? '<span style="color: green; font-weight: 600;">Paid</span>' : '<span style="color: red; font-weight: 600;">Unpaid</span>'; ?>
             </p>
@@ -109,8 +109,8 @@ unset($order); // break reference to avoid accidental overwrite
                   <tr>
                     <td><?= htmlspecialchars($item['product_name']) ?></td>
                     <td><?= $item['order_quantity'] ?></td>
-                    <td>₱<?= number_format($item['order_price'], 2) ?></td>
-                    <td>₱<?= number_format($item['order_quantity'] * $item['order_price'], 2) ?></td>
+                    <td>﷼<?= number_format($item['order_price'], 2) ?></td>
+                    <td>﷼<?= number_format($item['order_quantity'] * $item['order_price'], 2) ?></td>
                   </tr>
                 <?php endforeach; ?>
               </tbody>

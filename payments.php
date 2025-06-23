@@ -197,7 +197,7 @@ $payments = $db->getAllPayments(); // Now using the method from database.php
                         <td><?= $pay['order_id'] ?></td>
                         <td><?= htmlspecialchars($pay['username']) ?> (ID: <?= $pay['user_id'] ?>)</td>
                         <td><?= htmlspecialchars($pay['payment_method']) ?></td>
-                        <td>₱<?= number_format($pay['amount_paid'], 2) ?></td>
+                        <td>﷼<?= number_format($pay['amount_paid'], 2) ?></td>
                         <td><?= date('M d, Y h:i A', strtotime($pay['payment_date'])) ?></td>
                     </tr>
                 <?php endforeach; ?>

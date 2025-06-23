@@ -134,7 +134,7 @@ $orders = $db->getAllOrders();
                 <td>#<?=htmlspecialchars($order['order_id'])?></td>
                 <td><?=htmlspecialchars($order['username'])?></td>
                 <td><?=htmlspecialchars(date('M d, Y',strtotime($order['order_date'])))?></td>
-                <td>₱<?=number_format($order['total_amount'],2)?></td>
+                <td>﷼<?=number_format($order['total_amount'],2)?></td>
                 <td><?=htmlspecialchars($order['order_status'])?></td>
                 <td>
                   <div class="dropdown">

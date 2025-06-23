@@ -234,7 +234,7 @@ $lowStockProducts = $db->getLowStockProducts($selectedCat);
                     <div class="card <?= $isLow ? 'border border-danger' : '' ?>">
                         <div class="card-body">
                             <h5 class="card-title"><?= htmlspecialchars($prod['product_name']) ?></h5>
-                            <p>Price: <strong>₱<?= number_format($prod['product_price'], 2) ?></strong></p>
+                            <p>Price: <strong>﷼<?= number_format($prod['product_price'], 2) ?></strong></p>
                             <p>
                                 Stock: <?= $prod['product_stock'] ?>
                                 <?= $isLow ? '<span class="low-stock-label">⚠️ Low</span>' : '' ?>
