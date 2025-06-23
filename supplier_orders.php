@@ -17,6 +17,7 @@ $orders = $db->getSupplierOrders();
     <meta charset="UTF-8">
     <title>Supplier Orders</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
@@ -36,16 +37,12 @@ $orders = $db->getSupplierOrders();
             background-color: #0046af; color: white; font-weight: 600;
         }
         tr:hover { background-color: #f9f9f9; }
-        .action-btn {
-            padding: 5px 10px; margin: 2px; border-radius: 4px; font-size: 14px; text-decoration: none;
-            transition: background-color 0.2s; font-weight: 500;
+        .action-icons a {
+            margin-right: 10px; font-size: 18px;
         }
-        .edit-btn { background-color: #0046af; color: white; }
-        .edit-btn:hover { background-color: #003b96; }
-        .delete-btn { background-color: #dc3545; color: white; }
-        .delete-btn:hover { background-color: #c82333; }
-        .confirm-btn { background-color: #28a745; color: white; }
-        .confirm-btn:hover { background-color: #218838; }
+        .text-success:hover, .text-danger:hover, .text-primary:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -75,11 +72,17 @@ $orders = $db->getSupplierOrders();
             <td><?= htmlspecialchars($order['expected_delivery_date']) ?></td>
             <td>₱<?= number_format($order['total_cost'], 2) ?></td>
             <td><?= htmlspecialchars($order['order_status']) ?></td>
-            <td>
-                <a href="edit_supplier_order.php?id=<?= $order['supplier_order_id'] ?>" class="action-btn edit-btn">Edit</a>
-                <a href="delete_supplier_order.php?id=<?= $order['supplier_order_id'] ?>" class="action-btn delete-btn" onclick="return confirm('Delete this order?');">Delete</a>
-                <?php if ($order['order_status'] == 'Pending'): ?>
-                    <a href="confirm_order.php?id=<?= $order['supplier_order_id'] ?>" class="action-btn confirm-btn" onclick="return confirm('Confirm this order?');">Confirm</a>
+            <td class="action-icons">
+                <a href="edit_supplier_order.php?id=<?= $order['supplier_order_id'] ?>" class="text-primary" title="Edit">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <a href="delete_supplier_order.php?id=<?= $order['supplier_order_id'] ?>" class="text-danger" title="Delete" onclick="return confirm('Delete this order?');">
+                    <i class="bi bi-trash"></i>
+                </a>
+                <?php if ($order['order_status'] === 'Pending'): ?>
+                <a href="confirm_order.php?id=<?= $order['supplier_order_id'] ?>" class="text-success" title="Confirm" onclick="return confirm('Confirm this order?');">
+                    <i class="bi bi-check-circle"></i>
+                </a>
                 <?php endif; ?>
             </td>
         </tr>

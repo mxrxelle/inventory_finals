@@ -199,6 +199,29 @@ class database{
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    public function getOrdersPaginated($limit, $offset) {
+    $con = $this->opencon();
+    $sql = "SELECT o.*, u.username 
+            FROM orders o 
+            JOIN users u ON o.user_id = u.user_id 
+            WHERE o.order_status != 'Deleted' 
+            ORDER BY o.order_date DESC 
+            LIMIT :limit OFFSET :offset";
+    $stmt = $con->prepare($sql);
+    $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', (int) $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function getOrderCount() {
+    $con = $this->opencon();
+    $sql = "SELECT COUNT(*) as count FROM orders WHERE order_status != 'Deleted'";
+    $stmt = $con->query($sql);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result['count'];
+}
+
 
     public function getOrderItems($order_id) {
         $con = $this->opencon();
