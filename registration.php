@@ -14,7 +14,7 @@ if (isset($_POST['register'])){
  
   $password = password_hash($password_raw, PASSWORD_DEFAULT);
  
-  $valid_roles = ['admin', 'inventory_staff'];
+  $valid_roles = ['admin', 'inventory_staff', 'customer'];
   if (!in_array($role, $valid_roles)) {
     $sweetAlertConfig = "
       <script>
@@ -86,7 +86,7 @@ if (isset($_POST['register'])){
 <style>
   body {
     background: linear-gradient(135deg, #cddcfa, #e6e6fa);
-    background-image: url('final_pic.png');
+    background-image: url('images/final_pic.png');
     font-family: 'Segoe UI', sans-serif;
     min-height: 100vh;
   }
@@ -233,17 +233,6 @@ if (isset($_POST['register'])){
                     Password must be at least 6 characters long, include an uppercase letter, a number, and a special character.
                   </div>
                 </div>
-              </div>
- 
- 
-              <div class="mb-4">
-                <label for="role" class="form-label">Select Role</label>
-                <select name="role" id="role" class="form-select" required>
-                  <option value="" disabled selected>Choose a role</option>
-                  <option value="admin">Admin</option>
-                  <option value="inventory_staff">Inventory Staff</option>
-                </select>
-                <div class="invalid-feedback">Please select a role.</div>
               </div>
  
  

@@ -7,8 +7,10 @@ if (isset($_SESSION['user_id'])) {
     if ($_SESSION['role'] === 'admin') {
         header("Location: admin_dashboard.php");
         exit();
-    } elseif ($_SESSION['role'] === 'inventory_staff') {
+      } elseif ($_SESSION['role'] === 'inventory_staff') {
         header("Location: inventory_dashboard.php");
+      } elseif ($_SESSION['role'] === 'customer') {
+        header("Location: customer_dashboard.php");
         exit();
     }
 }
@@ -42,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
           $sweetAlertConfig .= "window.location.href = 'admin_dashboard.php';";
           } elseif($user['role'] == 'inventory_staff'){
           $sweetAlertConfig .= "window.location.href = 'inventory_dashboard.php';";
+          } elseif($user['role'] == 'customer'){
+          $sweetAlertConfig .= "window.location.href = 'customer_dashboard.php';";
          }else{
           $sweetAlertConfig .="window.location.href = 'login.php';";
         }
@@ -179,6 +183,9 @@ button[type="submit"]:hover {
  
               <button type="submit" name="login" class="btn btn-primary w-100">Login</button>
             </form>
+            <div class="text-end mt-2">
+              <a href="forgot_password.php" class="text-decoration-none">Forgot password?</a>
+            </div>
           </div>
         </div>
       </div>
@@ -195,6 +202,20 @@ button[type="submit"]:hover {
       echo $sweetAlertConfig;
     }
   ?>
+
+  <script>
+
+  (function () {
+    const form = document.getElementById('loginForm');
+    form.addEventListener('submit', function (event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    }, false);
+  })();
+</script>
 </body>
 </html>
  

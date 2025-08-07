@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $created_at = date('Y-m-d H:i:s');
 
     // Backend Safety Checks (in case someone bypasses JS/AJAX)
-    $valid_roles = ['admin', 'inventory_staff'];
+    $valid_roles = ['admin', 'inventory_staff', 'customer'];
     if (!in_array($role, $valid_roles)) {
         $sweetAlertConfig = "
         <script>
@@ -141,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <option value="">Select Role</option>
         <option value="admin">Admin</option>
         <option value="inventory_staff">Inventory Staff</option>
+        <option value="customer">Customer</option>
       </select>
       <div class="invalid-feedback">Role is required.</div>
     </div>
