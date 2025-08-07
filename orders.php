@@ -13,7 +13,16 @@ if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'inventory_staff') {
 }
 
 $db = new database();
-$orders = $db->getAllOrders();
+
+// Pagination setup
+$limit = 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($page < 1) $page = 1;
+$offset = ($page - 1) * $limit;
+$totalOrders = $db->getOrderCount();
+$totalPages = ceil($totalOrders / $limit);
+
+$orders = $db->getOrdersPaginated($limit, $offset);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -134,7 +143,7 @@ $orders = $db->getAllOrders();
                 <td>#<?=htmlspecialchars($order['order_id'])?></td>
                 <td><?=htmlspecialchars($order['username'])?></td>
                 <td><?=htmlspecialchars(date('M d, Y',strtotime($order['order_date'])))?></td>
-                <td>﷼<?=number_format($order['total_amount'],2)?></td>
+                <td>₱<?=number_format($order['total_amount'],2)?></td>
                 <td><?=htmlspecialchars($order['order_status'])?></td>
                 <td>
                   <div class="dropdown">
@@ -157,6 +166,32 @@ $orders = $db->getAllOrders();
             </tbody>
           </table>
         </div>
+
+        <!-- Pagination -->
+        <?php if ($totalPages > 1): ?>
+        <nav>
+          <ul class="pagination justify-content-center mt-3">
+            <?php if ($page > 1): ?>
+              <li class="page-item">
+                <a class="page-link" href="?page=<?= $page - 1 ?>">Previous</a>
+              </li>
+            <?php endif; ?>
+
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+              <li class="page-item <?= ($i === $page) ? 'active' : '' ?>">
+                <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+              </li>
+            <?php endfor; ?>
+
+            <?php if ($page < $totalPages): ?>
+              <li class="page-item">
+                <a class="page-link" href="?page=<?= $page + 1 ?>">Next</a>
+              </li>
+            <?php endif; ?>
+          </ul>
+        </nav>
+        <?php endif; ?>
+
       </div>
     </div>
   </div>

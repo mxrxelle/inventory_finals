@@ -179,31 +179,8 @@ $suppliers = $db->getAllSuppliers();
             background-color: #f9f9f9;
         }
 
-        .action-btn {
-            padding: 6px 12px;
-            margin: 2px;
-            font-size: 13px;
-            border-radius: 4px;
-            text-decoration: none;
-            color: white;
-            display: inline-block;
-            transition: 0.2s ease;
-        }
-
-        .edit-btn {
-            background-color: #2980b9;
-        }
-
-        .edit-btn:hover {
-            background-color: #2573a6;
-        }
-
-        .delete-btn {
-            background-color: #c0392b;
-        }
-
-        .delete-btn:hover {
-            background-color: #a83224;
+        .btn-sm i {
+            font-size: 1rem;
         }
     </style>
 </head>
@@ -269,8 +246,12 @@ $suppliers = $db->getAllSuppliers();
                             <td><?= htmlspecialchars($supplier['supplier_phonenumber']) ?></td>
                             <td><?= htmlspecialchars($supplier['supplier_email']) ?></td>
                             <td>
-                                <a href="edit_supplier.php?id=<?= $supplier['supplier_id'] ?>" class="action-btn edit-btn">Edit</a>
-                                <a href="delete_supplier.php?id=<?= $supplier['supplier_id'] ?>" class="action-btn delete-btn" onclick="return confirm('Are you sure you want to delete this supplier?');">Delete</a>
+                                <a href="edit_supplier.php?id=<?= $supplier['supplier_id'] ?>" class="btn btn-sm btn-primary me-1" title="Edit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="delete_supplier.php?id=<?= $supplier['supplier_id'] ?>" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this supplier?');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
