@@ -12,7 +12,7 @@ $first_name = $_SESSION['first_name'] ?? 'Customer';
 $last_name = $_SESSION['last_name'] ?? '';
 $full_name = $first_name . ' ' . $last_name;
 
-$db = new database();
+$db = new Database();
 $orders = $db->getOrdersByUser($_SESSION['user_id']);
 ?>
 <!DOCTYPE html>
@@ -132,7 +132,7 @@ $orders = $db->getOrdersByUser($_SESSION['user_id']);
     <ul>
         <li><a href="customer_dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a></li>
         <li><a href="browse_products.php"><i class="bi bi-bag"></i> Browse Products</a></li>
-        <li><a href="cart.php" class="bi ">🛒 View Cart</a></li>
+        <li><a href="cart.php"><i class="bi bi-cart3"></i> View Cart</a></li>
         <li><a href="my_orders.php"><i class="bi bi-receipt"></i> My Orders</a></li>
         <li><a href="customer_profile.php"><i class="bi bi-person-gear"></i> Profile</a></li>
         <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
@@ -166,7 +166,7 @@ $orders = $db->getOrdersByUser($_SESSION['user_id']);
                                     $badgeClass = $status === 'pending' ? 'badge-pending' : ($status === 'completed' ? 'badge-completed' : 'badge-cancelled');
                                 ?>
                                 <span class="badge-status <?= $badgeClass ?>">
-                                    <?= htmlspecialchars($order['order_status']); ?>
+                                    <?= ucfirst($status); ?>
                                 </span>
                             </td>
                             <td>₱<?= number_format($order['total_amount'], 2); ?></td>

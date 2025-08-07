@@ -130,8 +130,11 @@ $items = $db->getOrderItems($orderId);
         </tbody>
     </table>
  
-    <a href="orders.php" class="back-btn">Back</a>
-</div>
+    <?php
+        $backPage = ($_SESSION['role'] === 'customer') ? 'my_orders.php' : 'orders.php';
+    ?>
+    <a href="<?= $backPage ?>" class="back-btn">Back</a>
+    </div>
  
 </body>
 </html>

@@ -629,22 +629,28 @@ public function checkoutOrder($user_id) {
             return "empty_cart";
         }
 
-        // ✅ Check stock for each item
+        // ✅ Check stock
         foreach ($cartItems as $item) {
             if ($item['cart_quantity'] > $item['product_stock']) {
-                return "stock_error"; // Stock too low
+                return "stock_error";
             }
         }
 
-        // 2. Start transaction
+        // ✅ Calculate total_amount
+        $totalAmount = 0;
+        foreach ($cartItems as $item) {
+            $totalAmount += $item['cart_quantity'] * $item['product_price'];
+        }
+
+        // ✅ Begin transaction
         $con->beginTransaction();
 
-        // 3. Insert order
-        $stmt = $con->prepare("INSERT INTO orders (user_id) VALUES (?)");
-        $stmt->execute([$user_id]);
+        // ✅ Insert into orders with order_date and total_amount
+        $stmt = $con->prepare("INSERT INTO orders (user_id, order_date, total_amount, order_status) VALUES (?, NOW(), ?, 'Pending')");
+        $stmt->execute([$user_id, $totalAmount]);
         $order_id = $con->lastInsertId();
 
-        // 4. Insert each cart item into order_items
+        // ✅ Insert into order_items
         foreach ($cartItems as $item) {
             $itemStmt = $con->prepare("
                 INSERT INTO order_items (order_id, products_id, order_quantity, order_price)
@@ -653,11 +659,11 @@ public function checkoutOrder($user_id) {
             $itemStmt->execute([
                 $order_id,
                 $item['products_id'],
-                $item['cart_quantity'], // fixed here
+                $item['cart_quantity'],
                 $item['product_price']
             ]);
 
-            // 5. Deduct stock
+            // ✅ Deduct stock
             $stockStmt = $con->prepare("
                 UPDATE products SET product_stock = product_stock - ?
                 WHERE products_id = ?
@@ -668,11 +674,11 @@ public function checkoutOrder($user_id) {
             ]);
         }
 
-        // 6. Clear cart
+        // ✅ Clear cart
         $clearStmt = $con->prepare("DELETE FROM cart WHERE user_id = ?");
         $clearStmt->execute([$user_id]);
 
-        // 7. Commit
+        // ✅ Commit
         $con->commit();
         return "success";
 
@@ -682,12 +688,14 @@ public function checkoutOrder($user_id) {
     }
 }
 
+
 public function getOrdersByUser($user_id) {
     $con = $this->opencon();
-    $stmt = $con->prepare("SELECT * FROM orders WHERE user_id = ? AND order_status != 'Deleted' ORDER BY order_date DESC");
+    $stmt = $con->prepare("SELECT order_id, order_date, total_amount, order_status FROM orders WHERE user_id = ? AND order_status != 'Deleted' ORDER BY order_date DESC");
     $stmt->execute([$user_id]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 
 
 
