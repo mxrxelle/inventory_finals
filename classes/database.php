@@ -18,7 +18,7 @@ class database{
         try {
             $con->beginTransaction();
             $stmt = $con->prepare("INSERT INTO users (first_name, last_name, username, email, password, role, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$firstname, $lastname, $username, $email, $password, $role, $created_at]);
+            $stmt->execute([$firstname, $lastname, $username, $email, $password, $role = 'customer', $created_at]);
             $userID = $con->lastInsertId();
             $con->commit();
             return $userID;

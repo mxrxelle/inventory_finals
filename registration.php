@@ -14,17 +14,6 @@ if (isset($_POST['register'])){
  
   $password = password_hash($password_raw, PASSWORD_DEFAULT);
  
-  $valid_roles = ['admin', 'inventory_staff', 'customer'];
-  if (!in_array($role, $valid_roles)) {
-    $sweetAlertConfig = "
-      <script>
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Role',
-          text: 'Please select a valid user role.'
-        });
-      </script>";
-  } else {
     // Proceed with password validation and user creation
     $passwordValid = preg_match('/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/', $password_raw);
  
@@ -48,7 +37,7 @@ if (isset($_POST['register'])){
     Swal.fire({
       icon: 'success',
       title: 'Registration Successful',
-      text: 'You have successfully registered as an  $role.',
+      text: 'You have successfully registered.',
       confirmButtonText: 'OK'
     }).then(() => {
       window.location.href = 'login.php'
@@ -68,7 +57,7 @@ if (isset($_POST['register'])){
   }
 }
 }
-}
+
  
 ?>
  

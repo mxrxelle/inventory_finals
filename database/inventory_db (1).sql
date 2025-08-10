@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 22, 2025 at 10:19 PM
+-- Generation Time: Aug 10, 2025 at 07:32 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,26 @@ SET time_zone = "+00:00";
 --
 -- Database: `inventory_db`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cart`
+--
+
+CREATE TABLE `cart` (
+  `cart_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `products_id` int(11) NOT NULL,
+  `cart_quantity` int(11) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cart`
+--
+
+INSERT INTO `cart` (`cart_id`, `user_id`, `products_id`, `cart_quantity`) VALUES
+(21, 24, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -66,12 +86,10 @@ INSERT INTO `inventory_transactions` (`transaction_id`, `products_id`, `transact
 (3, 2, 'Add', 10, 'n/a', '2025-06-16 14:14:34'),
 (4, 1, 'Add', 20, 'n/a', '2025-06-22 18:05:56'),
 (5, 2, 'Add', 10, 'n/a', '2025-06-22 18:47:48'),
-(6, 6, 'Add', 5, 'n/a', '2025-06-23 00:27:48'),
 (7, 2, 'Add', 3, 'n/a', '2025-06-23 03:27:46'),
 (8, 1, 'Add', 10, 'n/a', '2025-06-23 03:27:56'),
 (9, 1, 'Add', 10, 'n/a', '2025-06-23 03:28:07'),
-(10, 1, 'Add', 1, 'n/a', '2025-06-23 03:28:20'),
-(11, 6, 'Add', 11, 'n/a', '2025-06-23 03:29:51');
+(10, 1, 'Add', 1, 'n/a', '2025-06-23 03:28:20');
 
 -- --------------------------------------------------------
 
@@ -102,7 +120,7 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `total_amount`, `orde
 (8, 9, '2025-06-16 08:20:58', 1000.00, 'Completed'),
 (9, 9, '2025-06-16 08:21:56', 1000.00, 'Completed'),
 (10, 9, '2025-06-16 08:30:12', 2000.00, ''),
-(11, 9, '2025-06-16 08:30:27', 3322.00, ''),
+(11, 9, '2025-06-16 08:30:27', 2000.00, ''),
 (12, 9, '2025-06-16 09:10:30', 1000.00, ''),
 (13, 9, '2025-06-16 09:16:28', 2000.00, ''),
 (14, 9, '2025-06-22 13:13:14', 2000.00, 'Completed'),
@@ -111,7 +129,24 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `total_amount`, `orde
 (17, 9, '2025-06-22 13:30:33', 122.00, ''),
 (18, 9, '2025-06-22 19:51:40', 2000.00, 'Completed'),
 (19, 9, '2025-06-22 19:51:56', 3000.00, 'Completed'),
-(20, 9, '2025-06-22 20:13:26', 3000.00, '');
+(20, 9, '2025-06-22 20:13:26', 3000.00, ''),
+(21, 9, '2025-06-23 04:42:06', 5000.00, ''),
+(40, 24, '2025-08-08 06:59:32', 4000.00, 'Pending'),
+(41, 24, '2025-08-08 06:59:32', NULL, 'Pending'),
+(42, 24, '2025-08-08 06:59:32', NULL, 'Pending'),
+(43, 24, '2025-08-08 06:59:32', NULL, 'Pending'),
+(44, 24, '2025-08-08 06:59:32', 1000.00, 'Completed'),
+(45, 24, '2025-08-08 06:59:32', 1000.00, 'Pending'),
+(46, 24, NULL, NULL, 'Pending'),
+(47, 24, NULL, NULL, 'Pending'),
+(48, 24, NULL, NULL, 'Pending'),
+(49, 24, '2025-08-08 07:37:01', 1000.00, 'Pending'),
+(50, 24, '2025-08-08 07:37:20', 3000.00, 'Pending'),
+(51, 24, '2025-08-08 07:40:51', 4000.00, 'Pending'),
+(52, 24, '2025-08-08 08:27:38', 1000.00, 'Pending'),
+(53, 24, '2025-08-08 08:27:53', 1000.00, 'Pending'),
+(54, 24, '2025-08-08 08:28:03', 1000.00, 'Pending'),
+(55, 24, '2025-08-10 12:17:31', 1000.00, 'Pending');
 
 -- --------------------------------------------------------
 
@@ -140,13 +175,11 @@ INSERT INTO `order_items` (`order_item_id`, `order_id`, `products_id`, `order_qu
 (6, 4, 2, 1, 1000.00),
 (7, 5, 2, 1, 1000.00),
 (8, 6, 1, 1, 1000.00),
-(9, 7, 6, 4, 1200.00),
 (10, 8, 1, 1, 1000.00),
 (11, 9, 1, 1, 1000.00),
 (12, 10, 1, 2, 1000.00),
 (13, 11, 1, 1, 1000.00),
 (14, 11, 2, 1, 1000.00),
-(16, 11, 6, 1, 1200.00),
 (17, 12, 1, 1, 1000.00),
 (18, 13, 1, 2, 1000.00),
 (19, 14, 1, 2, 1000.00),
@@ -154,7 +187,25 @@ INSERT INTO `order_items` (`order_item_id`, `order_id`, `products_id`, `order_qu
 (21, 16, 2, 1, 1000.00),
 (23, 18, 2, 2, 1000.00),
 (24, 19, 1, 3, 1000.00),
-(25, 20, 2, 3, 1000.00);
+(25, 20, 2, 3, 1000.00),
+(26, 21, 1, 2, 1000.00),
+(27, 21, 2, 3, 1000.00),
+(29, 40, 1, 1, 1000.00),
+(30, 40, 2, 2, 1000.00),
+(31, 40, 8, 1, 1000.00),
+(32, 44, 8, 1, 1000.00),
+(33, 45, 8, 1, 1000.00),
+(34, 46, 8, 1, 1000.00),
+(35, 47, 8, 1, 1000.00),
+(36, 48, 8, 4, 1000.00),
+(37, 49, 2, 1, 1000.00),
+(38, 50, 8, 3, 1000.00),
+(39, 51, 2, 2, 1000.00),
+(40, 51, 8, 2, 1000.00),
+(41, 52, 2, 1, 1000.00),
+(42, 53, 2, 1, 1000.00),
+(43, 54, 8, 1, 1000.00),
+(44, 55, 2, 1, 1000.00);
 
 -- --------------------------------------------------------
 
@@ -188,7 +239,9 @@ INSERT INTO `payment_and_invoicing` (`payment_id`, `order_id`, `user_id`, `payme
 (10, 18, 9, 'Cash', 2000.00, '2025-06-23'),
 (11, 18, 9, 'Cash', 2000.00, '2025-06-23'),
 (12, 18, 9, 'Cash', 2000.00, '2025-06-23'),
-(13, 6, 9, 'Cash', 1000.00, '2025-06-23');
+(13, 6, 9, 'Cash', 1000.00, '2025-06-23'),
+(14, 21, 9, 'Card', 5000.00, '2025-06-23'),
+(15, 44, 24, 'Cash', 1000.00, '2025-08-08');
 
 -- --------------------------------------------------------
 
@@ -210,11 +263,9 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`products_id`, `product_name`, `product_price`, `product_stock`, `category_id`, `supplier_id`) VALUES
-(1, 'Schaeffer\'s Specialized Lubricants', 1000.00, 3, 2, NULL),
-(2, 'Petrofer', 1000.00, 13, 1, NULL),
-(6, 'oil man', 1200.00, 20, 1, NULL),
-(8, 'Omega: The Ultimate Lubricant', 1000.00, 15, 2, NULL),
-(9, 'Omega: The Ultimate Lubricant', 1000.00, 15, 2, NULL);
+(1, 'Schaeffer\'s Specialized Lubricants', 1000.00, 0, 2, NULL),
+(2, 'Petrofer', 1000.00, 2, 1, NULL),
+(8, 'Omega: The Ultimate Lubricant', 1000.00, 0, 2, NULL);
 
 -- --------------------------------------------------------
 
@@ -248,7 +299,9 @@ INSERT INTO `shipping_and_delivery` (`delivery_id`, `order_id`, `user_id`, `trac
 (8, 18, 9, 'TRK68586331de1fd', 'Standard', '2025-06-23', '', '2025-06-22 20:10:38'),
 (9, 18, 9, 'TRK6858633e40cfc', 'Standard', '2025-06-01', '', '2025-06-22 20:10:48'),
 (10, 18, 9, 'TRK6858637f68621', 'Standard', '2025-06-23', '', '2025-06-22 20:11:50'),
-(11, 6, 9, 'TRK685864519557b', 'Standard', '2025-06-23', '', '2025-06-22 20:15:23');
+(11, 6, 9, 'TRK685864519557b', 'Standard', '2025-06-23', '', '2025-06-22 20:15:23'),
+(12, 21, 9, 'TRK6858bf010a108', 'Pickup', '2025-06-23', '', '2025-06-23 02:42:17'),
+(13, 44, 24, 'TRK689530b2909f5', 'Standard', '2025-08-08', '', '2025-08-07 23:03:26');
 
 -- --------------------------------------------------------
 
@@ -269,7 +322,8 @@ CREATE TABLE `supplier` (
 
 INSERT INTO `supplier` (`supplier_id`, `supplier_name`, `supplier_phonenumber`, `supplier_email`) VALUES
 (2, 'Kangkonga', '09451038854', 'joshmojica@gmail.com'),
-(5, 'mung', '094545454545', 'joshomojica@gmail.com');
+(5, 'mung', '094545454545', 'joshomojica@gmail.com'),
+(8, 'Kangkong', '09451038853', 'joshmojica@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -286,13 +340,6 @@ CREATE TABLE `supplier_orders` (
   `order_status` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `supplier_orders`
---
-
-INSERT INTO `supplier_orders` (`supplier_order_id`, `supplier_id`, `order_date`, `expected_delivery_date`, `total_cost`, `order_status`) VALUES
-(4, 2, '2025-06-23', '2025-06-26', 1000.00, 'Confirmed');
-
 -- --------------------------------------------------------
 
 --
@@ -305,8 +352,10 @@ CREATE TABLE `users` (
   `last_name` varchar(50) DEFAULT NULL,
   `username` varchar(50) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
+  `contact_number` varchar(20) DEFAULT NULL,
+  `address` varchar(100) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
-  `role` enum('admin','inventory_staff') NOT NULL,
+  `role` enum('admin','inventory_staff','customer') DEFAULT 'customer',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -314,21 +363,32 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `email`, `password`, `role`, `created_at`) VALUES
-(1, 'Marielleee', 'Bautista', 'mxrxelle', 'bautistamo@students.nu-lipa.edu.ph', '$2y$10$BsO/YdOlRoPJJ6nR6mDUp.JteHRa/MG88whyWohRaj/j4nXjZLCb6', 'admin', '2025-06-09 03:52:05'),
-(2, 'Marielle', 'Bautista', 'mxrxelle1', 'bautistamo1@students.nu-lipa.edu.ph', '$2y$10$9yGp5VxhMUtuUTSjT6whJeK5Z7EKp/.FTEka1W8nWqAKE0WQXdNQS', 'admin', '2025-06-09 04:18:26'),
-(3, 'Marielle', 'Bautista', 'mxrxelle12', 'bautistamo12@students.nu-lipa.edu.ph', '$2y$10$Lf7kpvjuIiUuhZVUSuDbaOk7Gskcptit5y9uRpooQeykC/U2tnnX.', 'admin', '2025-06-09 05:24:03'),
-(7, 'Marielle', 'Bautista', 'mxrxelle123456', 'bautistamo123456@students.nu-lipa.edu.ph', NULL, '', '2025-06-09 05:33:16'),
-(8, 'Marielle', 'Bautista', 'mxrxelle1234567', 'bautistamo1234567@students.nu-lipa.edu.ph', '$2y$10$5GdqtfeUAL516BhesBVC4eCe1EaAfnlP.ig4TiQaLvbI2QucO.Gk2', 'admin', '2025-06-09 05:43:31'),
-(9, 'Marielle', 'Bautista', 'mxrxelle12345678', 'bautistamo12345678@students.nu-lipa.edu.ph', '$2y$10$bwAOSkX9WUQm8S8a8bNd7usAu9g1kv2HUF38UHUZKdahMvXdX2jcO', 'admin', '2025-06-09 05:44:20'),
-(10, 'Marielle', 'Bautista', 'mxrxelle123456789', 'bautistamo123456789@students.nu-lipa.edu.ph', '$2y$10$dGJaz0lHCz/Eo7hdKFP1U.lyNoN6CyQ/6PQy7Wn7KHfgxWU2szS4O', '', '2025-06-09 05:46:00'),
-(11, 'Marielle', 'Bautista', 'mxrxelle1234567890', 'bautistamo1234567890@students.nu-lipa.edu.ph', '$2y$10$vhK5GFi0lL4e7Dn48yQJX.ZGqrPukyyrG8nEHcMKj2PWl0srUcgHq', 'admin', '2025-06-09 05:49:22'),
-(13, 'Marielle', 'Bautista', 'mxrxelle123456789012', 'bautistamo123456789012@students.nu-lipa.edu.ph', '$2y$10$VH8u71C6S9hMhb11GSFnJO2tWw7kixto11DnXy.S3bZggjTNtmPSa', 'inventory_staff', '2025-06-09 06:09:08'),
-(17, 'Mariellee', 'Bautista', 'jkpogi', 'poginijk@gmail.com', '$2y$10$0EQZGxrYcF7DnS6umfdYOuX5XMVKyJ7.0k/K2oxi3lxlAJj7injDa', 'admin', '2025-06-14 01:49:18');
+INSERT INTO `users` (`user_id`, `first_name`, `last_name`, `username`, `email`, `contact_number`, `address`, `password`, `role`, `created_at`) VALUES
+(1, 'Marielleee1', 'Bautista', 'mxrxelle2', 'bautistamo@students.nu-lipa.edu.ph', NULL, NULL, '$2y$10$BsO/YdOlRoPJJ6nR6mDUp.JteHRa/MG88whyWohRaj/j4nXjZLCb6', 'admin', '2025-06-09 03:52:05'),
+(2, 'Marielle', 'Bautista', 'mxrxelle1', 'bautistamo1@students.nu-lipa.edu.ph', NULL, NULL, '$2y$10$9yGp5VxhMUtuUTSjT6whJeK5Z7EKp/.FTEka1W8nWqAKE0WQXdNQS', 'admin', '2025-06-09 04:18:26'),
+(3, 'Marielle', 'Bautista', 'mxrxelle12', 'bautistamo12@students.nu-lipa.edu.ph', NULL, NULL, '$2y$10$Lf7kpvjuIiUuhZVUSuDbaOk7Gskcptit5y9uRpooQeykC/U2tnnX.', 'admin', '2025-06-09 05:24:03'),
+(8, 'Marielle', 'Bautista', 'mxrxelle1234567', 'bautistamo1234567@students.nu-lipa.edu.ph', NULL, NULL, '$2y$10$5GdqtfeUAL516BhesBVC4eCe1EaAfnlP.ig4TiQaLvbI2QucO.Gk2', 'admin', '2025-06-09 05:43:31'),
+(9, 'Marielle', 'Bautista', 'mxrxelle12345678', 'bautistamo12345678@students.nu-lipa.edu.ph', NULL, NULL, '$2y$10$bwAOSkX9WUQm8S8a8bNd7usAu9g1kv2HUF38UHUZKdahMvXdX2jcO', 'admin', '2025-06-09 05:44:20'),
+(11, 'Marielle', 'Bautista', 'mxrxelle1234567890', 'bautistamo1234567890@students.nu-lipa.edu.ph', NULL, NULL, '$2y$10$vhK5GFi0lL4e7Dn48yQJX.ZGqrPukyyrG8nEHcMKj2PWl0srUcgHq', 'admin', '2025-06-09 05:49:22'),
+(13, 'Marielle', 'Bautista', 'mxrxelle123456789012', 'bautistamo123456789012@students.nu-lipa.edu.ph', NULL, NULL, '$2y$10$VH8u71C6S9hMhb11GSFnJO2tWw7kixto11DnXy.S3bZggjTNtmPSa', '', '2025-06-09 06:09:08'),
+(19, 'Mariellee', 'Bautista', 'mxrxelle123456781', 'bautistamo@students.nu-lipa.edu.ph1', NULL, NULL, '$2y$10$u65vnHOTuw5oSmuzR0pwROV1Gsu0keG.ygl30PwIEeX12fuffORHy', '', '2025-06-22 20:40:42'),
+(20, 'Marielle', 'Bautista', 'mxrxelle', 'bautistamo@students.lipa', NULL, NULL, '$2y$10$vcaqDPzLw1rq6tAuEm.uLe436LTmZRrn6hlxi7hJ8OV50kEjGPtQy', '', '2025-06-22 20:45:37'),
+(21, 'marielle', 'martinez', 'yamster', 'yamster@gmail.com', NULL, NULL, '$2y$10$lUGpLv0ir5dibKsOcMg.lOiBcFc95dnGKmBPCGl0oKRYtfftuD7.u', 'admin', '2025-08-07 05:46:22'),
+(22, 'dario', 'boy', 'darioboy', 'darbs@123.com', NULL, NULL, '$2y$10$03t4gDp8Q7bmI8V8hT0VQ.8PuruBuOBl25LacXgH1qyy.tWDdLjvG', '', '2025-08-07 06:04:13'),
+(23, 'darbs', 'patootie', 'bbyboi', 'babyboy@123.com', NULL, NULL, '$2y$10$z8uL7MRDvS5nRJ7cd1/nSOC2.wP2qjcOep/qoarSiHgcBc4koW7bK', 'inventory_staff', '2025-08-07 06:07:18'),
+(24, 'Mariellee', 'Bautista', 'cute', 'cute@nga.com', '', '', '$2y$10$ejtDOFz3y2yBr8b.8x//1umXpXZwFJ8zqPgky2deheVdxHit2FFTu', 'customer', '2025-08-07 08:00:34');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `cart`
+--
+ALTER TABLE `cart`
+  ADD PRIMARY KEY (`cart_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `products_id` (`products_id`);
 
 --
 -- Indexes for table `category`
@@ -407,6 +467,12 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `cart`
+--
+ALTER TABLE `cart`
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+
+--
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
@@ -422,37 +488,37 @@ ALTER TABLE `inventory_transactions`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT for table `payment_and_invoicing`
 --
 ALTER TABLE `payment_and_invoicing`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `products_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `products_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `shipping_and_delivery`
 --
 ALTER TABLE `shipping_and_delivery`
-  MODIFY `delivery_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `delivery_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `supplier`
 --
 ALTER TABLE `supplier`
-  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `supplier_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `supplier_orders`
@@ -464,11 +530,18 @@ ALTER TABLE `supplier_orders`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `cart`
+--
+ALTER TABLE `cart`
+  ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`products_id`) REFERENCES `products` (`products_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `inventory_transactions`
