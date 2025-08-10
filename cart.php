@@ -75,6 +75,22 @@ $totalAmount = 0;
         .checkout-btn:hover {
             background-color: #218838;
         }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 16px;
+            margin-top: 20px;
+        }   
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+
     </style>
 </head>
 <body>
@@ -108,11 +124,12 @@ $totalAmount = 0;
                     <td><?php echo (int)$item['cart_quantity']; ?></td>
                     <td>₱<?php echo number_format($subtotal, 2); ?></td>
                     <td class="actions">
-                        <form action="remove_from_cart.php" method="POST">
+                        <form method="POST" action="remove_from_cart.php" onsubmit="return confirm('Are you sure you want to remove this item?');">
                             <input type="hidden" name="cart_id" value="<?php echo $item['cart_id']; ?>">
                             <button type="submit" style="background-color: #dc3545; color: white; padding: 6px 10px; border: none; border-radius: 4px;">Remove</button>
                         </form>
                     </td>
+                    
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -123,7 +140,11 @@ $totalAmount = 0;
         </div>
 
         <a href="checkout.php" class="checkout-btn">Proceed to Checkout</a>
+        
     <?php endif; ?>
+        <a href="browse_products.php" class="back-btn">← Back</a>
+
+
 </div>
 
 </body>

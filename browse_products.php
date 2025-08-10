@@ -134,7 +134,7 @@ $products = $db->getFilteredProducts($selectedCat, $search);
         <li><a href="browse_products.php"><i class="bi bi-bag"></i> Browse Products</a></li>
         <li><a href="cart.php" class="bi ">🛒 View Cart</a></li>
         <li><a href="my_orders.php"><i class="bi bi-receipt"></i> My Orders</a></li>
-        <li><a href="customer_profile.php"><i class="bi bi-person-gear"></i> Profile</a></li>
+        <li><a href="profile.php"><i class="bi bi-person-gear"></i> Profile</a></li>
         <li><a href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
     </ul>
 </div>

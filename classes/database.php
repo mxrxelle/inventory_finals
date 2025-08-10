@@ -518,6 +518,22 @@ public function getOrderCount() {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function getCartItemById($cart_id) {
+    $con = $this->opencon();
+    $stmt = $con->prepare("SELECT * FROM cart WHERE cart_id = ?");
+    $stmt->execute([$cart_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+
+function removeFromCart($cart_id) {
+    $con = $this->opencon();
+    $stmt = $con->prepare("DELETE FROM cart WHERE cart_id = ?");
+    $stmt->execute([$cart_id]);
+}
+
+
+
 
 
 
@@ -594,17 +610,17 @@ public function getOrderCount() {
 function addToCart($user_id, $products_id, $cart_quantity = 1) {
     $conn = $this->opencon();
 
-    // Check if item already in cart
+ 
     $stmt = $conn->prepare("SELECT * FROM cart WHERE user_id = ? AND products_id = ?");
     $stmt->execute([$user_id, $products_id]);
     $existing = $stmt->fetch();
 
     if ($existing) {
-        // Update cart_quantity
+        
         $stmt = $conn->prepare("UPDATE cart SET cart_quantity = cart_quantity + ? WHERE user_id = ? AND products_id = ?");
         $stmt->execute([$cart_quantity, $user_id, $products_id]);
     } else {
-        // Insert new
+        
         $stmt = $conn->prepare("INSERT INTO cart (user_id, products_id, cart_quantity) VALUES (?, ?, ?)");
         $stmt->execute([$user_id, $products_id, $cart_quantity]);
     }
@@ -614,7 +630,6 @@ public function checkoutOrder($user_id) {
     $con = $this->opencon();
 
     try {
-        // 1. Get cart items
         $cartStmt = $con->prepare("
             SELECT c.products_id, c.cart_quantity, p.product_price, p.product_stock
             FROM cart c
@@ -624,33 +639,27 @@ public function checkoutOrder($user_id) {
         $cartStmt->execute([$user_id]);
         $cartItems = $cartStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // ✅ Check if cart is empty
         if (empty($cartItems)) {
             return "empty_cart";
         }
 
-        // ✅ Check stock
         foreach ($cartItems as $item) {
             if ($item['cart_quantity'] > $item['product_stock']) {
                 return "stock_error";
             }
         }
 
-        // ✅ Calculate total_amount
         $totalAmount = 0;
         foreach ($cartItems as $item) {
             $totalAmount += $item['cart_quantity'] * $item['product_price'];
         }
 
-        // ✅ Begin transaction
         $con->beginTransaction();
 
-        // ✅ Insert into orders with order_date and total_amount
         $stmt = $con->prepare("INSERT INTO orders (user_id, order_date, total_amount, order_status) VALUES (?, NOW(), ?, 'Pending')");
         $stmt->execute([$user_id, $totalAmount]);
         $order_id = $con->lastInsertId();
 
-        // ✅ Insert into order_items
         foreach ($cartItems as $item) {
             $itemStmt = $con->prepare("
                 INSERT INTO order_items (order_id, products_id, order_quantity, order_price)
@@ -663,7 +672,7 @@ public function checkoutOrder($user_id) {
                 $item['product_price']
             ]);
 
-            // ✅ Deduct stock
+            
             $stockStmt = $con->prepare("
                 UPDATE products SET product_stock = product_stock - ?
                 WHERE products_id = ?
@@ -674,11 +683,11 @@ public function checkoutOrder($user_id) {
             ]);
         }
 
-        // ✅ Clear cart
+
         $clearStmt = $con->prepare("DELETE FROM cart WHERE user_id = ?");
         $clearStmt->execute([$user_id]);
 
-        // ✅ Commit
+
         $con->commit();
         return "success";
 
@@ -694,6 +703,12 @@ public function getOrdersByUser($user_id) {
     $stmt = $con->prepare("SELECT order_id, order_date, total_amount, order_status FROM orders WHERE user_id = ? AND order_status != 'Deleted' ORDER BY order_date DESC");
     $stmt->execute([$user_id]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function updateUserProfile($id, $first_name, $last_name, $username, $email, $contact_number, $address) {
+    $con = $this->opencon();
+    $stmt = $con->prepare("UPDATE users SET first_name=?, last_name=?, username=?, email=?, contact_number=?, address=? WHERE user_id=?");
+    return $stmt->execute([$first_name, $last_name, $username, $email, $contact_number, $address, $id]);
 }
 
 

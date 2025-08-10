@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'classes/database.php';
+require_once ('classes/database.php');
 
 if (isset($_POST['products_id']) && isset($_SESSION['user_id'])) {
     $db = new database();
